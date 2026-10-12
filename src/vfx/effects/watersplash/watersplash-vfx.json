@@ -1,0 +1,39 @@
+{
+    "$about": "A water impact: the crown that leaps out of the surface, the droplets it throws and the rings it leaves. Event-driven — nothing happens until emit() is called. Tune in the lab, then paste the exported JSON back over this file.",
+    "enabled": true,
+    "surfaceOffset": 0.012,
+
+    "$splash": "The crown. splashIntensity decides how many streams it is made of as well as scaling the droplets and the rings, so it is the one knob for 'harder hit'. shapeVariation at 0 gives a perfectly even crown, which is exactly what a real splash never is.",
+    "splashHeight": 1.15,
+    "splashWidth": 0.52,
+    "splashIntensity": 1,
+    "splashDuration": 0.78,
+    "shapeVariation": 0.72,
+
+    "$look": "waterColor is the body of the water; highlights push it toward white, because foam is water full of air and has no hue left. opacity well under 1 — a sheet of water is see-through.",
+    "waterColor": "#79c4d8",
+    "highlightIntensity": 0.85,
+    "opacity": 0.78,
+
+    "$droplets": "dropletCount is per impact, before splashIntensity scales it. The size draw is biased small and the big drops leave slower, so a burst is spray with a few heavy drops arcing through it.",
+    "dropletCount": 26,
+    "dropletSize": 0.038,
+    "dropletSizeVariation": 0.55,
+    "spreadRadius": 0.34,
+    "launchVelocity": 3.4,
+    "gravity": -9.8,
+    "dropletLifetime": 1.1,
+    "dropletOpacity": 0.85,
+
+    "$ripples": "A short wave train, not one circle: later rings start wider, weaker and a beat behind. rippleSpeed and rippleDuration together decide how far a ring reaches.",
+    "rippleEnabled": true,
+    "rippleCount": 3,
+    "rippleSpeed": 1.5,
+    "rippleWidth": 0.085,
+    "rippleOpacity": 0.6,
+    "rippleDuration": 1.6,
+
+    "$secondary": "The small splash a droplet leaves when it falls back in. Weighted by how heavy the drop was, so the fine spray lands silently and only the big ones ring.",
+    "secondarySplashEnabled": true,
+    "secondarySplashIntensity": 0.5
+}

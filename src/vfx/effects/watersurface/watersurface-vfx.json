@@ -1,0 +1,25 @@
+{
+    "$about": "Animated water surface. Every key here is a shader uniform, so edits land on the next frame and nothing is rebuilt. Defaults are calm water; the lab's preset buttons show the swamp / clear / stylised ends of the same knobs. Tune in the lab, then paste the exported JSON back over this file.",
+    "enabled": true,
+    "surfaceSize": 60,
+    "opacity": 1,
+
+    "baseColor": "#1d5468",
+    "deepColor": "#071a26",
+    "highlightColor": "#a8dcea",
+    "colorVariation": 0.55,
+    "highlightIntensity": 0.45,
+    "highlightThreshold": 0.55,
+    "fresnelIntensity": 0.35,
+
+    "waveAmplitude": 0.07,
+    "waveFrequency": 0.38,
+    "waveSpeed": 0.45,
+    "waveDirection": 35,
+    "secondaryWaveIntensity": 0.6,
+
+    "detailScale": 1.4,
+    "detailIntensity": 0.4,
+    "rippleIntensity": 0.35,
+    "rippleSpeed": 0.7
+}

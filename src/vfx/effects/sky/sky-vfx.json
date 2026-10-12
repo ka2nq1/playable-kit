@@ -1,0 +1,152 @@
+{
+    "$about": "Sky & atmosphere defaults. Every key is optional — anything left out falls back to the schema default in config.ts, and anything invalid falls back with a console warning rather than breaking the sky. Colours are sRGB hex. Angles are degrees. Distances are metres.",
+    "version": 1,
+    "id": "clear-day",
+    "quality": "standard",
+
+    "sky": {
+        "$about": "The four gradient stops run bottom to top: lowerHorizon (below the horizon line), horizon, upperSky, zenith. dayNightBlend decides how much the clock is allowed to override them — set it to 0 for a look that must stay as authored.",
+        "zenithColor": "#2f6fd6",
+        "upperSkyColor": "#5e9ce9",
+        "horizonColor": "#bcd9f3",
+        "lowerHorizonColor": "#93a3b2",
+        "nightZenithColor": "#05070f",
+        "nightHorizonColor": "#121b2e",
+        "horizonHeight": 0,
+        "gradientSoftness": 0.55,
+        "atmosphereIntensity": 0.55,
+        "hazeIntensity": 0.4,
+        "skyBrightness": 1,
+        "skySaturation": 1,
+        "skyContrast": 1,
+        "dayNightBlend": 1,
+        "exposure": 1
+    },
+
+    "sun": {
+        "$about": "azimuth and elevation are overwritten every frame while time.driveCelestials is on; turn it off to place the sun by hand. size and glowRadius are angular radii in degrees — the real sun is about 0.27.",
+        "enabled": true,
+        "azimuth": 180,
+        "elevation": 62,
+        "color": "#fff6e2",
+        "size": 1.3,
+        "intensity": 1.7,
+        "glowIntensity": 0.45,
+        "glowRadius": 15,
+        "glowSoftness": 0.7
+    },
+
+    "moon": {
+        "$about": "phase 0 is new, 0.5 is full, 1 is new again. Position is independent of phase.",
+        "enabled": false,
+        "azimuth": 0,
+        "elevation": -62,
+        "size": 2.2,
+        "color": "#dfe7f5",
+        "intensity": 1,
+        "glowIntensity": 0.35,
+        "phase": 0.5,
+        "surfaceDetail": 0.35
+    },
+
+    "stars": {
+        "$about": "density is cells per cube face, coverage the fraction of cells holding a star. Stars fade themselves out as the sun rises, so leaving this enabled in a daytime preset costs nothing visually.",
+        "enabled": false,
+        "density": 36,
+        "brightness": 1,
+        "size": 0.5,
+        "twinkleIntensity": 0.4,
+        "twinkleSpeed": 1,
+        "color": "#eef3ff",
+        "coverage": 0.35
+    },
+
+    "clouds": {
+        "$about": "type picks a set of shaping multipliers over everything below — wispy, scattered, puffy, overcast, storm, volcanic. layerCount is capped by the quality mode. height is metres above the camera.",
+        "enabled": true,
+        "type": "scattered",
+        "coverage": 0.38,
+        "density": 1,
+        "scale": 1,
+        "detail": 1,
+        "softness": 0.35,
+        "opacity": 0.9,
+        "color": "#ffffff",
+        "shadowColor": "#8e9bb0",
+        "height": 900,
+        "layerCount": 2,
+        "speed": 0.8,
+        "direction": 45,
+        "windStrength": 1,
+        "variation": 0.5,
+        "lightInfluence": 0.6
+    },
+
+    "weather": {
+        "$about": "type is clear | rain | snow | storm | dust | ash. storm draws rain and additionally darkens the sky and enables lightning. visibility 1 is clear, 0.02 is a whiteout; it tightens the fog and washes the sky out.",
+        "type": "clear",
+        "intensity": 0.6,
+        "precipitationDensity": 1,
+        "precipitationSpeed": 1,
+        "windDirection": 45,
+        "windStrength": 0.4,
+        "visibility": 1,
+        "particleSize": 1,
+        "particleOpacity": 1,
+        "particleColor": "#cfe2f5",
+        "lightning": {
+            "$about": "frequency is average strikes per minute. bolts draws a stylised bolt as well as the flash; the flash alone is nearly free.",
+            "enabled": false,
+            "frequency": 8,
+            "intensity": 1,
+            "duration": 0.35,
+            "bolts": false,
+            "boltColor": "#dce6ff"
+        }
+    },
+
+    "atmosphere": {
+        "$about": "fogFollowsSky drives the fog colour from the live horizon colour, which is what stops a hard band appearing where the ground meets the sky. fogType exp2 ignores near/far and uses fogDensity.",
+        "fogEnabled": true,
+        "fogType": "linear",
+        "fogColor": "#bcd9f3",
+        "fogDensity": 0.012,
+        "fogNear": 20,
+        "fogFar": 150,
+        "horizonHaze": 0.5,
+        "tint": "#ffffff",
+        "tintStrength": 0,
+        "visibilityDistance": 160,
+        "fogFollowsSky": true
+    },
+
+    "lighting": {
+        "$about": "All synchronisation is opt-in and reversible: the system snapshots whatever it is handed and puts it back when a toggle goes false or on dispose. It never creates or replaces a light. driveFromSun derives colour and intensity from sun elevation; turn it off to use the values below literally.",
+        "syncLighting": true,
+        "syncFog": true,
+        "syncBackground": false,
+        "ambientIntensity": 0.9,
+        "ambientColor": "#9fb6d4",
+        "directionalIntensity": 2.2,
+        "directionalColor": "#fff2d9",
+        "transitionSpeed": 4,
+        "driveFromSun": true
+    },
+
+    "time": {
+        "$about": "One clock for the whole system. Sunrise is 6:00 and sunset 18:00. cycleDuration is real seconds for a full 24 hours.",
+        "timeOfDay": 12,
+        "autoCycle": false,
+        "cycleDuration": 120,
+        "timeScale": 1,
+        "paused": false,
+        "driveCelestials": true
+    },
+
+    "transition": {
+        "$about": "Defaults used by transitionToPreset when it is not given its own.",
+        "duration": 2.5,
+        "easing": "smooth",
+        "auto": false
+    }
+}

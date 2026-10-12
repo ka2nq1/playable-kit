@@ -1,0 +1,43 @@
+{
+    "$schema": "./config.ts (normalizeRisingEmbersConfig)",
+    "$about": "Glowing embers rising from a hot surface. Data only — no functions, no asset paths. Unknown keys are ignored; invalid values fall back to the defaults in config.ts and are reported in the console.",
+    "version": 1,
+
+    "$emission": "The source area sits at emissionHeight above the effect's own origin — position risingembers.object3d on the hot surface itself. Width and depth are full extents. emissionRate is embers per second; the live population settles at rate x average lifetime and is capped by particleCount, so the rate sets the density and the count sets the budget.",
+    "enabled": true,
+    "particleCount": 260,
+    "emissionRate": 30,
+    "emissionWidth": 2.6,
+    "emissionDepth": 2.6,
+    "emissionHeight": 0.05,
+    "emissionShape": "disc",
+
+    "$motion": "riseSpeed is the average over a life, not the launch speed: the climb eases out as the ember cools. driftSpeed is a coherent wind every ember shares, spread is the cone the column opens into, turbulence is the per-ember wander. maxHeight caps the travel so a long-lived ember cannot leave the shot.",
+    "riseSpeed": 0.55,
+    "riseSpeedVariation": 0.45,
+    "driftSpeed": 0.12,
+    "driftAngle": 35,
+    "turbulence": 0.14,
+    "spread": 0.5,
+    "maxHeight": 6.5,
+
+    "$look": "The three colours are one temperature ramp, coolColor -> baseColor -> hotColor. Each ember is born somewhere on it and slides down as it ages, and the draw is biased low: most embers live in the dim red half and only a few reach hotColor and carry a white centre. Sizes are world units, minScreenSize is a floor in screen space (fraction of viewport height) that stops the far ones going sub-pixel. sizeVariation is how far size is allowed to come loose from heat.",
+    "minSize": 0.016,
+    "maxSize": 0.055,
+    "sizeVariation": 0.45,
+    "hotColor": "#fff0b4",
+    "baseColor": "#ff7a1e",
+    "coolColor": "#8c1c06",
+    "glowIntensity": 1.1,
+    "opacity": 0.95,
+    "minScreenSize": 0.004,
+
+    "$life": "Lifetimes in seconds; hotter embers live toward the top of the range. fadeOutDuration is long on purpose — an ember should go out, not switch off. coolingIntensity drives both the colour slide toward coolColor and the dimming that goes with it.",
+    "minLifetime": 4.5,
+    "maxLifetime": 11.0,
+    "fadeInDuration": 0.35,
+    "fadeOutDuration": 2.2,
+    "flickerSpeed": 7.0,
+    "flickerIntensity": 0.42,
+    "coolingIntensity": 0.8
+}
