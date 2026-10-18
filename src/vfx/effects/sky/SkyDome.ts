@@ -1,11 +1,18 @@
 /**
  * The whole sky in one draw call: gradient, haze, sun, moon, stars and the cloud decks.
  *
- * Everything here is a function of the view *direction*, which is why it can share a single
- * fullscreen-ish pass. A dome mesh would need tessellation (and show its seams); layered quads
- * would need one draw call each and sort against the particles. A unit box drawn from the inside,
- * with the camera translation stripped out of the view matrix in the vertex shader, gives an
- * exact ray per fragment for the price of 12 triangles and no per-frame matrix write.
+ * Everything here is a function of a *direction*, which is why it can share a single
+ * fullscreen-ish pass. Where that direction comes from is the one thing `projection.mode`
+ * changes, and the fragment shader never learns which it got:
+ *
+ *  - `infinite` — a unit box drawn from the inside with the camera translation stripped out of
+ *    the view matrix, so object space *is* the view ray. An exact ray per fragment for the price
+ *    of 12 triangles and no per-frame matrix write. No parallax: the sky is at infinity.
+ *  - `dome` — the same shading painted onto a real ellipsoid standing over the map, drawn with
+ *    the ordinary transform. Object space is a unit sphere, so a vertex position is the latitude
+ *    the gradient is painted at, and the scale that flattens the dome compresses that painting
+ *    rather than distorting it. Finite, so it parallaxes, and the horizon belongs to the map
+ *    instead of following the camera.
  *
  * Draw order is the load-bearing part — see the comment on `transparent` in `buildMaterial`.
  */
@@ -18,9 +25,11 @@ import {
     LessEqualDepth,
     Mesh,
     ShaderMaterial,
+    SphereGeometry,
     Vector2,
     Vector3,
     WebGLRenderer,
+    type BufferGeometry,
 } from "three";
 import { resolveColor } from "../../core/colorCache";
 import type { SkyConfig, SkyQuality } from "./config";
@@ -30,23 +39,39 @@ const VERTEX = /* glsl */ `
 varying vec3 vDir;
 
 void main() {
-    // Object space is the ray: the box is a unit cube centred on the origin, so a vertex position
-    // interpolated across a (planar) face is exactly that face's intersection with the view ray.
+    // Object space is the shading direction in both modes: a face of the unit box interpolates to
+    // that face's intersection with the view ray, a vertex of the unit sphere is already a unit
+    // direction. Which is why only the clip-space half of this shader is behind the #ifdef.
     vDir = position;
 
+#ifdef SKY_DOME
+    // A real object, with a real transform: this is where the parallax comes from.
+    vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+    // A dome standing further out than the camera's far plane would be clipped away in one
+    // piece, which reads as "the sky disappeared". Pinning it to the far plane instead degrades
+    // the look back to the flat backdrop — the wrong look, but unmistakably still a sky.
+    #ifdef USE_REVERSED_DEPTH_BUFFER
+        clip.z = max(clip.z, 0.0);
+    #else
+        clip.z = min(clip.z, clip.w);
+    #endif
+#else
     // mat3(viewMatrix) drops the translation, which pins the box to the camera without anything
     // ever touching its matrix — no onBeforeRender write, no matrixWorld update, no drift.
     vec4 clip = projectionMatrix * vec4(mat3(viewMatrix) * position, 1.0);
 
-#ifdef USE_REVERSED_DEPTH_BUFFER
-    // Reversed depth puts the far plane at 0 and clears to 0; GEqual then passes against the
-    // clear. Writing w here instead would land the sky on the NEAR plane and paint over the scene.
-    clip.z = 0.0;
-#else
-    // z == w is exactly the far plane, i.e. window depth 1.0 — the same value the buffer is
-    // cleared to. That is why depthFunc must be LessEqual: plain Less rejects every fragment and
-    // the screen comes out black with a perfectly correct shader.
-    clip.z = clip.w;
+    #ifdef USE_REVERSED_DEPTH_BUFFER
+        // Reversed depth puts the far plane at 0 and clears to 0; GEqual then passes against the
+        // clear. Writing w here instead would land the sky on the NEAR plane and paint over the
+        // scene.
+        clip.z = 0.0;
+    #else
+        // z == w is exactly the far plane, i.e. window depth 1.0 — the same value the buffer is
+        // cleared to. That is why depthFunc must be LessEqual: plain Less rejects every fragment
+        // and the screen comes out black with a perfectly correct shader.
+        clip.z = clip.w;
+    #endif
 #endif
 
     gl_Position = clip;
@@ -128,6 +153,18 @@ uniform vec2 uCloudWind;
 
 /** View-space units per pixel at unit depth — the LOD metric the cloud fbm fades octaves on. */
 uniform float uPixelAngle;
+
+#ifdef SKY_DOME
+/**
+ * Where the dome stands. In this mode it, not the camera, is the origin the cloud deck is
+ * intersected around — which is what anchors the deck to the dome instead of to the viewer.
+ *
+ * uPixelAngle is still measured off the camera, so the octave cutoff above is exact only while
+ * the camera is near the dome's centre and an approximation as it moves off it. The fade is a
+ * soft one, so being a fraction of an octave out costs a little detail, not a band of static.
+ */
+uniform vec3 uDomeCenter;
+#endif
 
 varying vec3 vDir;
 
@@ -237,7 +274,13 @@ vec3 starField(vec3 d) {
 #if CLOUD_LAYERS > 0
 /** Returns rgb = lit cloud colour, a = coverage. */
 vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMul) {
-    float hRel = height - cameraPosition.y;
+#ifdef SKY_DOME
+    vec3 origin = uDomeCenter;
+#else
+    vec3 origin = cameraPosition;
+#endif
+
+    float hRel = height - origin.y;
     float denom = d.y;
 
     // Guard before the divide: a ray parallel to the deck never meets it, and a deck behind the
@@ -253,7 +296,7 @@ vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMu
 
     // Clamp only to keep the coordinate finite; the fades above decide what is actually visible.
     float tc = min(t, uCloudFar * 2.0);
-    vec2 p = cameraPosition.xz + d.xz * tc;
+    vec2 p = origin.xz + d.xz * tc;
 
     float scale = uCloudScale * scaleMul * 0.0016;
     vec2 q = (p + wind) * scale;
@@ -454,11 +497,22 @@ function angleToChord(degrees: number): number {
 export class SkyDome {
     readonly mesh: Mesh;
 
-    private readonly geometry: BoxGeometry;
+    private readonly boxGeometry: BoxGeometry;
+    private domeGeometry: SphereGeometry | null = null;
     private material: ShaderMaterial;
     private quality: SkyQuality;
     private cloudsEnabled: boolean;
     private starsEnabled: boolean;
+    private domeMode: boolean;
+    private domeSegments: number;
+
+    // The dome's placement, copied out of the config by `apply` so `prepare` — which is the only
+    // place the camera exists — can finish the job without holding on to the config.
+    private domeRadius = 400;
+    private domeHeightScale = 1;
+    private domeY = 0;
+    private domeFollowCamera = false;
+    private readonly domeCenter = new Vector3();
 
     // Per-frame scratch. Nothing in `apply` or `onBeforeRender` may allocate.
     private readonly moonRight = new Vector3();
@@ -471,15 +525,20 @@ export class SkyDome {
         this.quality = config.quality;
         this.cloudsEnabled = config.clouds.enabled;
         this.starsEnabled = config.stars.enabled;
+        this.domeMode = config.projection.mode === "dome";
+        this.domeSegments = Math.round(config.projection.segments);
 
-        this.geometry = new BoxGeometry(2, 2, 2);
+        this.boxGeometry = new BoxGeometry(2, 2, 2);
         this.material = this.buildMaterial();
 
-        this.mesh = new Mesh(this.geometry, this.material);
+        this.mesh = new Mesh(this.geometryForMode(), this.material);
         this.mesh.name = "sky:dome";
+        // Neither mode lets three own this transform: the backdrop is relocated by the vertex
+        // shader, the dome writes its own `matrixWorld` in `prepare`.
         this.mesh.matrixAutoUpdate = false;
-        // The vertex shader relocates the box every frame, so the bounding sphere three would
-        // test is meaningless — it would cull the sky on the first orbit.
+        // The bounding sphere three would test is meaningless for the backdrop — it would cull
+        // the sky on the first orbit — and the dome is always around the camera, so neither mode
+        // has anything to gain from the test.
         this.mesh.frustumCulled = false;
         // Last among the opaque objects: the scene has written depth by now, so covered pixels
         // fail the test and cost nothing, and the transparent pass still draws over the result.
@@ -499,13 +558,31 @@ export class SkyDome {
      */
     private defines(): Record<string, string> {
         const preset = SKY_QUALITY_PRESETS[this.quality];
-        return {
+        const defines: Record<string, string> = {
             CLOUD_LAYERS: String(this.cloudsEnabled ? preset.cloudLayers : 0),
             CLOUD_OCTAVES: String(preset.cloudOctaves),
             CLOUD_LIGHTING: preset.cloudLighting ? "1" : "0",
             STARS_ENABLED: this.starsEnabled ? "1" : "0",
             STAR_NEIGHBOURS: preset.starNeighbours ? "1" : "0",
         };
+        // Tested with #ifdef, so in backdrop mode it has to be absent rather than "0".
+        if (this.domeMode) defines.SKY_DOME = "1";
+        return defines;
+    }
+
+    /**
+     * The mesh for the current mode.
+     *
+     * A full ellipsoid rather than a half dome: the shader already paints a below-horizon band,
+     * and a hemisphere would show its cut rim the moment the camera tilted below the dome's base.
+     */
+    private geometryForMode(): BufferGeometry {
+        if (!this.domeMode) return this.boxGeometry;
+        if (!this.domeGeometry || this.domeGeometry.parameters.widthSegments !== this.domeSegments) {
+            this.domeGeometry?.dispose();
+            this.domeGeometry = new SphereGeometry(1, this.domeSegments, Math.max(4, this.domeSegments >> 1));
+        }
+        return this.domeGeometry;
     }
 
     private buildMaterial(): ShaderMaterial {
@@ -583,6 +660,7 @@ export class SkyDome {
                 uCloudWind: { value: new Vector2() },
 
                 uPixelAngle: { value: 0.0012 },
+                uDomeCenter: { value: new Vector3() },
             },
             side: BackSide,
             // MUST stay false. An opaque material sits in three's opaque list, where renderOrder
@@ -610,10 +688,12 @@ export class SkyDome {
      * common case — dragging a slider, loading a preset — costs no compile at all.
      */
     syncFeatures(config: SkyConfig): void {
+        const projectionChanged = this.syncProjection(config.projection);
+
         const wantQuality = config.quality;
         const wantClouds = config.clouds.enabled;
         const wantStars = config.stars.enabled;
-        if (wantQuality === this.quality && wantClouds === this.cloudsEnabled && wantStars === this.starsEnabled) {
+        if (!projectionChanged && wantQuality === this.quality && wantClouds === this.cloudsEnabled && wantStars === this.starsEnabled) {
             return;
         }
         this.quality = wantQuality;
@@ -642,6 +722,12 @@ export class SkyDome {
         const c = src.config;
         const u = this.material.uniforms;
         const sky = c.sky;
+
+        // ---- Dome placement, finished in `prepare` once the camera is known ----
+        this.domeRadius = c.projection.radius;
+        this.domeHeightScale = c.projection.heightScale;
+        this.domeY = c.projection.yOffset;
+        this.domeFollowCamera = c.projection.followCamera;
 
         u.uTime.value = src.elapsed;
         (u.uZenith.value as Color).copy(resolveColor(sky.zenithColor));
@@ -733,6 +819,28 @@ export class SkyDome {
         this.wind.y -= Math.sin(rad) * speed * dt;
     }
 
+    /**
+     * Swaps the mesh when the projection changes. Returns true when the shader has to recompile.
+     *
+     * Tessellation is handled here too, so re-authoring a dome's segment count rebuilds one
+     * geometry rather than a program.
+     */
+    private syncProjection(projection: SkyConfig["projection"]): boolean {
+        const wantDome = projection.mode === "dome";
+        const wantSegments = Math.round(projection.segments);
+        const modeChanged = wantDome !== this.domeMode;
+        if (!modeChanged && (!wantDome || wantSegments === this.domeSegments)) return false;
+
+        this.domeMode = wantDome;
+        this.domeSegments = wantSegments;
+        this.mesh.geometry = this.geometryForMode();
+        // The backdrop's vertex shader ignores the model matrix, so a stale one would not show
+        // up on screen — it would show up in anything that reads the mesh's transform, which is
+        // a worse kind of bug to find.
+        if (!wantDome) this.mesh.matrixWorld.identity();
+        return modeChanged;
+    }
+
     private prepare(renderer: WebGLRenderer, camera: Camera): void {
         // View-space units per pixel at unit depth. The cloud fbm needs this to know which octave
         // has gone sub-pixel; everything else about the sky is resolution-independent.
@@ -741,10 +849,32 @@ export class SkyDome {
         if (projY && size.y > 0) {
             this.material.uniforms.uPixelAngle.value = 2 / (projY * size.y);
         }
+
+        if (!this.domeMode) return;
+
+        // Placed here rather than in `apply` because following the camera needs the camera, and
+        // three only hands it over at draw time. Writing `matrixWorld` is safe at this point:
+        // `onBeforeRender` runs immediately before the renderer derives the model-view matrix
+        // from it. It is written rather than composed from position/scale so the dome stands in
+        // world space whatever transform the group it was added to happens to carry.
+        const center = this.domeCenter.set(0, this.domeY, 0);
+        if (this.domeFollowCamera) {
+            // From the matrix, not from `camera.position`: a camera parented to a rig has a
+            // local position that is not where it is standing.
+            tmpCamera.setFromMatrixPosition(camera.matrixWorld);
+            center.x = tmpCamera.x;
+            center.z = tmpCamera.z;
+        }
+        (this.material.uniforms.uDomeCenter.value as Vector3).copy(center);
+
+        const r = this.domeRadius;
+        this.mesh.matrixWorld.makeScale(r, r * this.domeHeightScale, r);
+        this.mesh.matrixWorld.setPosition(center);
     }
 
     dispose(): void {
-        this.geometry.dispose();
+        this.boxGeometry.dispose();
+        this.domeGeometry?.dispose();
         this.material.dispose();
         this.mesh.onBeforeRender = () => {};
     }
@@ -752,3 +882,4 @@ export class SkyDome {
 
 /** Module-level scratch: `getDrawingBufferSize` writes into a target rather than allocating. */
 const tmpSize = new Vector2();
+const tmpCamera = new Vector3();

@@ -21,6 +21,7 @@ import {
     CLOUD_TYPES,
     FOG_TYPES,
     SKY_PRESET_IDS,
+    SKY_PROJECTIONS,
     SKY_QUALITIES,
     SkyVfx,
     TRANSITION_EASINGS,
@@ -29,6 +30,7 @@ import {
     skyPresetLabel,
     type CloudType,
     type FogType,
+    type SkyProjection,
     type SkyQuality,
     type TransitionEasing,
     type WeatherType,
@@ -280,6 +282,17 @@ export function createSkyLabEffect(ctx: LabEffectContext): LabEffectHandle {
                 },
             );
             presets.note(`${SKY_PRESET_IDS.length} built-in · ${customIds.length} custom. Custom presets live in this browser only.`);
+
+            // ---- Projection --------------------------------------------------------------------
+            const pr = cfg.projection;
+            const proj = panel.folder("Projection", false);
+            proj.select<SkyProjection>("Mode", SKY_PROJECTIONS, () => pr.mode, (v) => (pr.mode = v));
+            proj.slider("Radius m", { min: 10, max: 2000, step: 5 }, () => pr.radius, (v) => (pr.radius = v));
+            proj.slider("Height ×", { min: 0.1, max: 4, step: 0.01 }, () => pr.heightScale, (v) => (pr.heightScale = v));
+            proj.slider("Centre y", { min: -200, max: 200, step: 1 }, () => pr.yOffset, (v) => (pr.yOffset = v));
+            proj.toggle("Follow camera", () => pr.followCamera, (v) => (pr.followCamera = v));
+            proj.slider("Segments", { min: 8, max: 128, step: 4 }, () => pr.segments, (v) => (pr.segments = Math.round(v)));
+            proj.note(`infinite is the backdrop at infinity. dome stands a finite ellipsoid over the scene — it parallaxes, Height below 1 bunches the gradient toward the horizon, and Follow camera trades the parallax back for a horizon you cannot walk out of. The dome must clear the ground and stay inside the camera's far plane (${SKY_CAMERA_FAR} m here) or it falls back to looking flat.`);
 
             // ---- Sky ---------------------------------------------------------------------------
             const s = cfg.sky;

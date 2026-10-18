@@ -33,6 +33,7 @@ npm start          # http://localhost:5188
 | `src/vfx/effects/swampbubbles/` | Gas bubbles breaking a stagnant surface: shaded domes, pop rings and the odd droplet, plus its JSON config. |
 | `src/vfx/effects/risingembers/` | Glowing embers rising off a hot surface: one instanced draw animated entirely in the vertex shader, plus its JSON config. |
 | `src/vfx/effects/smokewisps/` | Thin strands of smoke rising off a smouldering surface: one instanced draw of curling ribbons, plus its JSON config. |
+| `src/vfx/effects/snowstorm/` | A localized moving blizzard: a dense volume of camera-facing impostors with wind-driven snow streaming through it, drifting across the background on its own transform, with optional lightning buried inside it, plus its JSON config. |
 | `src/vfx/effects/sky/` | The sky and atmosphere system: a one-draw-call procedural sky with sun, moon, stars and clouds, GPU-driven weather particles, lightning, optional fog and lighting synchronisation, a day/night cycle and 24 built-in presets, plus its JSON config. |
 | `src/lab/` | The preview harness: renderer, loop, set dressing (volcanic ground, preview water, the under-ice lake and its fish), control panel. **Never shipped.** |
 | `scripts/shot.mjs` | Headless screenshot of the running lab, for before/after comparisons. |
@@ -1436,6 +1437,19 @@ without anything ever writing its matrix. Object space is then exactly the view 
 feature — gradient, haze, sun disc, sun glow, moon disc, moon phase, stars, cloud decks — is a
 function of that one direction, evaluated per pixel.
 
+**Two projections over that one shader.** `projection.mode` decides where the direction comes
+from. `infinite` is the box above: a backdrop at infinity, no parallax, the horizon follows the
+camera. `dome` swaps the box for a real ellipsoid standing over the map — object space there is a
+unit sphere, so a vertex position is still a direction and the fragment shader is unchanged, but
+the mesh has a position and a radius. It therefore parallaxes as the camera moves, its horizon
+belongs to the map rather than to the viewer, and `heightScale` below 1 flattens it so the
+gradient bunches toward the horizon, which is the hand-painted skydome look. The cloud decks are
+intersected around the dome's centre instead of the camera's, so they are anchored to it too.
+A dome has to clear the map — the sky draws last among the opaque objects, so anything standing
+outside it is painted over — and should sit inside the camera's far plane; past it the dome is
+pinned to the far plane rather than clipped away, which quietly degrades the look back to the
+flat backdrop.
+
 The vertex shader forces the output depth to the far plane and the material is **opaque** with
 `depthWrite: false` and `renderOrder: 1000`. That combination is doing something specific: it
 puts the sky last in three's *opaque* queue, so your scene's geometry has already written depth
@@ -1569,6 +1583,9 @@ is one draw call in every mode.
 
 The panel groups follow the config sections, and every control is live.
 
+- **Projection** — `infinite` (the backdrop at infinity) or `dome` (a finite ellipsoid over the
+  scene), plus the dome's radius, vertical scale, centre height and tessellation. `Follow camera`
+  trades the dome's parallax back for a horizon that cannot be walked out of.
 - **Sky** — the four gradient stops (`zenith`, `upperSky`, `horizon`, `lowerHorizon`), where the
   horizon line sits and how soft the blends are, plus the night pair and `dayNightBlend`, which
   decides how much the clock is allowed to override the authored palette. `atmosphereIntensity`
@@ -1721,7 +1738,9 @@ app, the panel and `__vfxLab.effect.debug.firePit` for anything the panel does n
    helpers in `src/vfx/core/config.ts`.
 3. Add `src/lab/effects/<name>LabEffect.ts` returning a `LabEffectHandle` — the object3d, an
    `update`, the control bindings and a stats line.
-4. Register it in `src/lab/registry.ts`. The dropdown, panel and stats pick it up from there.
+4. Register it in `src/lab/registry.ts` with a `label`, a one-phrase `hint` and the `group` it
+   is listed under — keep entries of one group adjacent. The picker, panel and stats pick it
+   up from there.
 
 ---
 

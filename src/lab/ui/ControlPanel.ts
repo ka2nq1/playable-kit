@@ -21,16 +21,33 @@ export interface SliderOptions {
     step?: number;
 }
 
+/** One row of `Folder.list`. */
+export interface ListItem {
+    value: string;
+    label: string;
+    /** Second line, in muted type: what the entry is. */
+    hint?: string;
+    /** Heading the row is filed under. Items of one group must be adjacent in the array. */
+    group?: string;
+}
+
 interface Binding {
     sync(): void;
+}
+
+/** Panel state that has to outlive `clear()`, since switching effect rebuilds every control. */
+interface PanelState {
+    listFilter: string;
 }
 
 export class Folder {
     readonly dom: HTMLDetailsElement;
     private readonly bindings: Binding[];
+    private readonly state: PanelState;
 
-    constructor(title: string, open: boolean, bindings: Binding[]) {
+    constructor(title: string, open: boolean, bindings: Binding[], state: PanelState) {
         this.bindings = bindings;
+        this.state = state;
         this.dom = document.createElement("details");
         this.dom.className = "vl-folder";
         this.dom.open = open;
@@ -208,6 +225,92 @@ export class Folder {
         return this;
     }
 
+    /**
+     * A single-choice list with a filter box, for a catalogue you browse rather than a setting
+     * you set.
+     *
+     * A `select` collapses to the chosen entry, so finding anything means opening it and reading
+     * fifteen one-line strings — which is exactly the case the effect registry is. This keeps
+     * every entry on screen with its description under its name, grouped, and narrows as you
+     * type. The filter text lives on the panel rather than here: choosing an effect rebuilds all
+     * the controls, and a filter that cleared itself on every pick would be worse than none.
+     */
+    list(items: readonly ListItem[], get: Getter<string>, set: Setter<string>): this {
+        const wrap = document.createElement("div");
+        wrap.className = "vl-list";
+
+        const search = document.createElement("input");
+        search.type = "text";
+        search.className = "vl-list-search";
+        search.placeholder = "filter…";
+        search.spellcheck = false;
+        search.value = this.state.listFilter;
+
+        const scroll = document.createElement("div");
+        scroll.className = "vl-list-scroll";
+
+        const rows = new Map<string, HTMLButtonElement>();
+
+        const sync = () => {
+            const current = get();
+            for (const [value, btn] of rows) btn.classList.toggle("vl-on", value === current);
+        };
+
+        const render = () => {
+            const terms = this.state.listFilter.toLowerCase().split(/\s+/).filter(Boolean);
+            rows.clear();
+            scroll.replaceChildren();
+            let group: string | undefined;
+
+            for (const item of items) {
+                const haystack = `${item.label} ${item.hint ?? ""} ${item.group ?? ""} ${item.value}`.toLowerCase();
+                if (!terms.every((t) => haystack.includes(t))) continue;
+
+                if (item.group !== undefined && item.group !== group) {
+                    group = item.group;
+                    const head = document.createElement("div");
+                    head.className = "vl-list-group";
+                    head.textContent = item.group;
+                    scroll.appendChild(head);
+                }
+
+                const btn = document.createElement("button");
+                btn.className = "vl-item";
+                btn.type = "button";
+                const name = document.createElement("b");
+                name.textContent = item.label;
+                btn.appendChild(name);
+                if (item.hint) {
+                    const hint = document.createElement("small");
+                    hint.textContent = item.hint;
+                    btn.appendChild(hint);
+                }
+                btn.addEventListener("click", () => set(item.value));
+                scroll.appendChild(btn);
+                rows.set(item.value, btn);
+            }
+
+            if (rows.size === 0) {
+                const empty = document.createElement("div");
+                empty.className = "vl-list-empty";
+                empty.textContent = "no match";
+                scroll.appendChild(empty);
+            }
+            sync();
+        };
+
+        search.addEventListener("input", () => {
+            this.state.listFilter = search.value;
+            render();
+        });
+
+        render();
+        wrap.append(search, scroll);
+        this.dom.appendChild(wrap);
+        this.bindings.push({ sync });
+        return this;
+    }
+
     /** One or more buttons sharing a row. */
     buttons(...items: Array<{ label: string; onClick: () => void; primary?: boolean }>): this {
         const ctl = this.row(null);
@@ -247,6 +350,7 @@ export class ControlPanel {
 
     private readonly body: HTMLDivElement;
     private readonly bindings: Binding[] = [];
+    private readonly state: PanelState = { listFilter: "" };
 
     constructor(title: string, subtitle = "") {
         this.dom = document.createElement("div");
@@ -269,7 +373,7 @@ export class ControlPanel {
     }
 
     folder(title: string, open = true): Folder {
-        const f = new Folder(title, open, this.bindings);
+        const f = new Folder(title, open, this.bindings, this.state);
         this.body.appendChild(f.dom);
         return f;
     }

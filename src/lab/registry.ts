@@ -3,7 +3,7 @@
  *
  * Adding a new effect is two steps: write a handle like `createFirePitLabEffect` that wraps your
  * effect and declares its controls, then add one entry here. Nothing else in the lab needs to
- * know the effect exists — the dropdown, the panel and the stats line all come from this list.
+ * know the effect exists — the picker, the panel and the stats line all come from this list.
  */
 
 import type { Object3D } from "three";
@@ -24,6 +24,7 @@ import { createRisingEmbersLabEffect } from "./effects/risingEmbersLabEffect";
 import { createSmokeWispsLabEffect } from "./effects/smokeWispsLabEffect";
 import { createHeatDistortionLabEffect } from "./effects/heatDistortionLabEffect";
 import { createIceSurfaceLabEffect } from "./effects/iceSurfaceLabEffect";
+import { createSnowstormLabEffect } from "./effects/snowstormLabEffect";
 import { createSkyLabEffect } from "./effects/skyLabEffect";
 
 /**
@@ -63,84 +64,129 @@ export interface LabEffectHandle {
 
 export interface LabEffectEntry {
     id: string;
+    /** The name shown in the picker. Short — it is what you scan the list for. */
     label: string;
+    /** The second line under the label: what the effect actually is. */
+    hint: string;
+    /**
+     * Heading the entry is listed under. Entries sharing a group must stay adjacent here — the
+     * picker emits a heading whenever the group changes, so a split group prints twice.
+     */
+    group: string;
     create(ctx: LabEffectContext): LabEffectHandle;
 }
 
 export const EFFECTS: readonly LabEffectEntry[] = [
     {
         id: "firepit",
-        label: "Fire pit — sparks / embers / smoke",
+        label: "Fire pit",
+        hint: "sparks / embers / smoke",
+        group: "Fire & lava",
         create: createFirePitLabEffect,
     },
     {
         id: "lavasurface",
-        label: "Lava surface — animated shader",
+        label: "Lava surface",
+        hint: "animated shader",
+        group: "Fire & lava",
         create: createLavaSurfaceLabEffect,
     },
     {
         id: "lavaimpact",
-        label: "Lava impact — molten burst",
+        label: "Lava impact",
+        hint: "molten burst",
+        group: "Fire & lava",
         create: createLavaImpactLabEffect,
     },
     {
         id: "heatdistortion",
-        label: "Heat distortion — refracting hot air",
+        label: "Heat distortion",
+        hint: "refracting hot air",
+        group: "Fire & lava",
         create: createHeatDistortionLabEffect,
     },
     {
         id: "glowingcracks",
-        label: "Glowing cracks — procedural fracture shader",
+        label: "Glowing cracks",
+        hint: "procedural fracture shader",
+        group: "Fire & lava",
         create: createGlowingCracksLabEffect,
     },
     {
-        id: "icesurface",
-        label: "Procedural ice shader — transparency, refraction, frost",
-        create: createIceSurfaceLabEffect,
-    },
-    {
         id: "water",
-        label: "Water — surface ripples",
+        label: "Water ripples",
+        hint: "expanding rings on the surface",
+        group: "Water",
         create: createWaterLabEffect,
     },
     {
         id: "watersurface",
-        label: "Water surface — animated shader",
+        label: "Water surface",
+        hint: "animated shader",
+        group: "Water",
         create: createWaterSurfaceLabEffect,
     },
     {
         id: "watersplash",
-        label: "Water splash — impact burst",
+        label: "Water splash",
+        hint: "impact burst",
+        group: "Water",
         create: createWaterSplashLabEffect,
     },
     {
         id: "waterfog",
-        label: "Water fog — drifting surface mist",
+        label: "Water fog",
+        hint: "drifting surface mist",
+        group: "Water",
         create: createWaterFogLabEffect,
     },
     {
         id: "swampbubbles",
-        label: "Swamp bubbles — surface gas",
+        label: "Swamp bubbles",
+        hint: "surface gas",
+        group: "Water",
         create: createSwampBubblesLabEffect,
     },
     {
+        id: "icesurface",
+        label: "Ice surface",
+        hint: "transparency, refraction, frost",
+        group: "Ice",
+        create: createIceSurfaceLabEffect,
+    },
+    {
+        id: "snowstorm",
+        label: "Snowstorm",
+        hint: "localized drifting blizzard",
+        group: "Ice",
+        create: createSnowstormLabEffect,
+    },
+    {
         id: "risingembers",
-        label: "Rising embers — ambient heat column",
+        label: "Rising embers",
+        hint: "ambient heat column",
+        group: "Ambient",
         create: createRisingEmbersLabEffect,
     },
     {
         id: "smokewisps",
-        label: "Smoke wisps — rising strands",
+        label: "Smoke wisps",
+        hint: "rising strands",
+        group: "Ambient",
         create: createSmokeWispsLabEffect,
     },
     {
         id: "fireflies",
-        label: "Fireflies — ambient drifting lights",
+        label: "Fireflies",
+        hint: "ambient drifting lights",
+        group: "Ambient",
         create: createFirefliesLabEffect,
     },
     {
         id: "sky",
-        label: "Sky & atmosphere — procedural sky, weather, day/night",
+        label: "Sky & atmosphere",
+        hint: "procedural sky, weather, day/night",
+        group: "Sky",
         create: createSkyLabEffect,
     },
 ];

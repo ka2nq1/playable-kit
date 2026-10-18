@@ -41,13 +41,14 @@ function loadEffect(id: string): void {
 function buildPanel(): void {
     panel.clear();
 
-    const lab = panel.folder("Lab");
-    lab.select(
-        "Effect",
-        EFFECTS.map((e) => e.id),
+    const effects = panel.folder("Effect");
+    effects.list(
+        EFFECTS.map((e) => ({ value: e.id, label: e.label, hint: e.hint, group: e.group })),
         () => currentEntryId,
         (v) => loadEffect(v),
     );
+
+    const lab = panel.folder("Lab");
     lab.select(
         "Camera",
         ["playable", "close", "wide", "top"] as const satisfies readonly CameraPresetName[],

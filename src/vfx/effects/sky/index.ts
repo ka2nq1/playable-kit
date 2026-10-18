@@ -16,14 +16,16 @@ export {
 export type { SkyImportResult, SkyPresetEntry } from "./presets";
 export { SKY_QUALITY_PRESETS, CLOUD_TYPE_SHAPES } from "./quality";
 export type { SkyQualityPreset, CloudShape } from "./quality";
-export { normalizeSkyConfig, SKY_CONFIG_VERSION, SKY_QUALITIES, CLOUD_TYPES, WEATHER_TYPES, FOG_TYPES, TRANSITION_EASINGS } from "./config";
+export { normalizeSkyConfig, SKY_CONFIG_VERSION, SKY_QUALITIES, SKY_PROJECTIONS, CLOUD_TYPES, WEATHER_TYPES, FOG_TYPES, TRANSITION_EASINGS } from "./config";
 export type {
     SkyConfig,
     SkyQuality,
+    SkyProjection,
     CloudType,
     WeatherType,
     FogType,
     TransitionEasing,
+    ProjectionConfig,
     SkyPaletteConfig,
     SunConfig,
     MoonConfig,

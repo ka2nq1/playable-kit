@@ -63,6 +63,11 @@ function colorField<S extends keyof SkyConfig>(sec: S, key: string): ColorField 
 }
 
 export const NUMBER_FIELDS: readonly NumberField[] = [
+    // The dome's shape rides on `mesh.scale`, so easing it costs a matrix compose, not a rebuild.
+    numField("projection", "radius"),
+    numField("projection", "heightScale"),
+    numField("projection", "yOffset"),
+
     numField("sky", "horizonHeight"),
     numField("sky", "gradientSoftness"),
     numField("sky", "atmosphereIntensity"),
@@ -181,6 +186,8 @@ export const COLOR_FIELDS: readonly ColorField[] = [
  */
 function applyDiscrete(out: SkyConfig, from: SkyConfig, to: SkyConfig, t: number): void {
     const src = t >= 0.999 ? to : from;
+    out.projection.mode = src.projection.mode;
+    out.projection.followCamera = src.projection.followCamera;
     out.clouds.type = src.clouds.type;
     out.weather.type = src.weather.type;
     out.atmosphere.fogType = src.atmosphere.fogType;
@@ -196,8 +203,10 @@ function applyDiscrete(out: SkyConfig, from: SkyConfig, to: SkyConfig, t: number
     out.weather.lightning.boltColor = src.weather.lightning.boltColor;
 
     // Cost, not look — take the target's straight away so a transition into STATIC does not keep
-    // paying for ENHANCED all the way through.
+    // paying for ENHANCED all the way through. Dome tessellation is the same kind of decision,
+    // and easing it would rebuild the mesh on every frame of the fade.
     out.quality = to.quality;
+    out.projection.segments = to.projection.segments;
     out.id = t >= 0.5 ? to.id : from.id;
     out.version = to.version;
 
@@ -265,6 +274,9 @@ export function assertAnimatableCoverage(config: SkyConfig): string[] {
         "version",
         "id",
         "quality",
+        "projection.mode",
+        "projection.followCamera",
+        "projection.segments",
         "sun.enabled",
         "moon.enabled",
         "stars.enabled",

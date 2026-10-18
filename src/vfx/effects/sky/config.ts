@@ -11,7 +11,7 @@
  * and nothing here is a function, which is what keeps a config portable between projects.
  */
 
-import { ConfigIssues, bool, colorHex, num, oneOf, section } from "../../core/config";
+import { ConfigIssues, bool, colorHex, int, num, oneOf, section } from "../../core/config";
 
 /** Rendering cost tier. See `SKY_QUALITY_PRESETS` for what each one actually switches off. */
 export const SKY_QUALITIES = ["static", "standard", "enhanced"] as const;
@@ -27,6 +27,18 @@ export type CloudType = (typeof CLOUD_TYPES)[number];
  */
 export const WEATHER_TYPES = ["clear", "rain", "snow", "storm", "dust", "ash"] as const;
 export type WeatherType = (typeof WEATHER_TYPES)[number];
+
+/**
+ * How the sky is projected.
+ *
+ * `infinite` is a backdrop at infinity — a camera-pinned box, no parallax, the horizon follows
+ * you. `dome` is a real ellipsoid of finite radius standing over the map: it has a position, so
+ * moving through the scene slides the gradient and the cloud deck across it, and flattening it
+ * compresses the gradient the way a hand-painted skydome does. Which one reads better is a look
+ * decision per map, which is why it is a setting rather than a rewrite.
+ */
+export const SKY_PROJECTIONS = ["infinite", "dome"] as const;
+export type SkyProjection = (typeof SKY_PROJECTIONS)[number];
 
 export const FOG_TYPES = ["linear", "exp2"] as const;
 export type FogType = (typeof FOG_TYPES)[number];
@@ -222,10 +234,34 @@ export interface TransitionConfig {
     auto: boolean;
 }
 
+export interface ProjectionConfig {
+    mode: SkyProjection;
+    /**
+     * Horizontal radius of the dome, in metres. Ignored by `infinite`.
+     *
+     * It has to clear the map — anything standing outside the dome is painted over by it, since
+     * the sky draws last among the opaque objects. It should also sit inside the camera's far
+     * plane; past it the dome is pinned to the far plane instead of being clipped away, which
+     * silently degrades the look back to the flat backdrop.
+     */
+    radius: number;
+    /** Vertical radius as a fraction of `radius`. Below 1 the dome flattens and the gradient
+     * bunches toward the horizon, which is the whole reason to reach for this mode. */
+    heightScale: number;
+    /** Height of the dome's centre, i.e. where its horizon line sits. Usually ground level. */
+    yOffset: number;
+    /** Keeps the dome centred over the camera horizontally, trading the parallax for a horizon
+     * that cannot be walked out of. The gradient still shifts vertically. */
+    followCamera: boolean;
+    /** Tessellation of the dome mesh. Only the silhouette uses it; the shading is per-pixel. */
+    segments: number;
+}
+
 export interface SkyConfig {
     version: number;
     id: string;
     quality: SkyQuality;
+    projection: ProjectionConfig;
     sky: SkyPaletteConfig;
     sun: SunConfig;
     moon: MoonConfig;
@@ -261,6 +297,7 @@ export function normalizeSkyConfig(raw: unknown): { config: SkyConfig; issues: C
             version: SKY_CONFIG_VERSION,
             id,
             quality: oneOf(root, "quality", SKY_QUALITIES, "standard", "config", issues),
+            projection: readProjection(section(root, "projection"), issues),
             sky: readSky(section(root, "sky"), issues),
             sun: readSun(section(root, "sun"), issues),
             moon: readMoon(section(root, "moon"), issues),
@@ -277,6 +314,18 @@ export function normalizeSkyConfig(raw: unknown): { config: SkyConfig; issues: C
 }
 
 type Raw = Record<string, unknown> | undefined;
+
+function readProjection(raw: Raw, issues: ConfigIssues): ProjectionConfig {
+    const p = "projection";
+    return {
+        mode: oneOf(raw, "mode", SKY_PROJECTIONS, "infinite", p, issues),
+        radius: num(raw, "radius", 400, p, issues, 10, 20000),
+        heightScale: num(raw, "heightScale", 1, p, issues, 0.1, 4),
+        yOffset: num(raw, "yOffset", 0, p, issues, -2000, 2000),
+        followCamera: bool(raw, "followCamera", false, p, issues),
+        segments: int(raw, "segments", 32, p, issues, 8, 128),
+    };
+}
 
 function readSky(raw: Raw, issues: ConfigIssues): SkyPaletteConfig {
     const p = "sky";

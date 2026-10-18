@@ -218,6 +218,102 @@
     padding: 2px 4px;
 }
 
+/* Effect picker: a filter box over a scrolling list of grouped entries. */
+.vl-list {
+    padding: 2px 12px 6px 12px;
+}
+
+.vl-list-search {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--vl-line);
+    border-radius: 4px;
+    color: var(--vl-text);
+    font: inherit;
+    padding: 3px 6px;
+    margin-bottom: 4px;
+    /* The panel sets user-select: none, which otherwise reaches inside the field. */
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.vl-list-search:focus {
+    border-color: var(--vl-accent);
+    outline: none;
+}
+
+.vl-list-search::placeholder {
+    color: var(--vl-muted);
+}
+
+/* Capped so a fifteen-entry catalogue does not push the effect's own controls off-screen. */
+.vl-list-scroll {
+    max-height: 244px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.vl-list-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.vl-list-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+}
+
+.vl-list-group {
+    color: var(--vl-muted);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 2px 2px;
+}
+
+.vl-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: 1px solid transparent;
+    border-left: 2px solid transparent;
+    border-radius: 4px;
+    color: var(--vl-text);
+    font: inherit;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.vl-item > b {
+    font-weight: 600;
+}
+
+.vl-item > small {
+    display: block;
+    color: var(--vl-muted);
+    font-size: 10px;
+}
+
+.vl-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.vl-item.vl-on {
+    background: var(--vl-accent-dim);
+    border-left-color: var(--vl-accent);
+}
+
+.vl-item.vl-on > b {
+    color: var(--vl-accent);
+}
+
+.vl-list-empty {
+    color: var(--vl-muted);
+    padding: 4px 2px;
+}
+
 .vl-btn {
     flex: 1;
     background: rgba(255, 255, 255, 0.07);

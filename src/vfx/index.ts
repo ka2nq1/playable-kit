@@ -28,5 +28,6 @@ export * from "./effects/risingembers";
 export * from "./effects/smokewisps";
 export * from "./effects/heatdistortion";
 export * from "./effects/icesurface";
+export * from "./effects/snowstorm";
 
 export * from "./effects/sky";

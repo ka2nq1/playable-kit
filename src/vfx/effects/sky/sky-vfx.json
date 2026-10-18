@@ -4,6 +4,16 @@
     "id": "clear-day",
     "quality": "standard",
 
+    "projection": {
+        "$about": "mode infinite is the backdrop at infinity — no parallax, the horizon follows the camera. mode dome stands a finite ellipsoid over the map instead: radius is its horizontal half-width in metres, heightScale its vertical radius as a fraction of that (below 1 flattens the dome and bunches the gradient toward the horizon), yOffset the height of its horizon line. It has to clear the map and should sit inside the camera's far plane.",
+        "mode": "infinite",
+        "radius": 400,
+        "heightScale": 1,
+        "yOffset": 0,
+        "followCamera": false,
+        "segments": 32
+    },
+
     "sky": {
         "$about": "The four gradient stops run bottom to top: lowerHorizon (below the horizon line), horizon, upperSky, zenith. dayNightBlend decides how much the clock is allowed to override them — set it to 0 for a look that must stay as authored.",
         "zenithColor": "#2f6fd6",
