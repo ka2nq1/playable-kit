@@ -1,0 +1,98 @@
+{
+    "$schema": "./config.ts (normalizeFirePitConfig)",
+    "$about": "Fire pit VFX. Data only — no functions, no asset paths. Unknown keys are ignored; invalid values fall back to the defaults in config.ts and are reported in the console.",
+    "version": 1,
+
+    "quality": {
+        "$about": "Multipliers applied on top of every effect's maxParticles and emission rate. Switch presets at runtime; no buffers are reallocated.",
+        "preset": "high",
+        "presets": {
+            "low": { "particles": 0.4, "emission": 0.45 },
+            "high": { "particles": 1.0, "emission": 1.0 }
+        }
+    },
+
+    "sparks": {
+        "$about": "Fast bright streaks. Short-lived, gravity-bound, emitted in bursts on top of a continuous trickle.",
+        "enabled": true,
+        "maxParticles": 500,
+        "emission": {
+            "rate": 24,
+            "burstCount": [14, 30],
+            "autoBurstInterval": [0.55, 1.7]
+        },
+        "lifetime": [0.25, 0.75],
+        "spawn": { "radius": 0.4, "height": 0.08, "offset": [0, 0.05, 0] },
+        "direction": {
+            "$about": "upward = how much the launch axis is pulled from radial-outward toward straight up (0 flat, 1 vertical). spreadDeg = half-angle of the random cone around it.",
+            "upward": 0.78,
+            "spreadDeg": 58
+        },
+        "velocity": { "speed": [3.6, 9.5] },
+        "gravity": -11.0,
+        "drag": 1.8,
+        "streak": {
+            "$about": "World-space streak size. lengthPerSpeed stretches fast sparks further, which is what sells the speed difference between them. minWidth is a floor in screen space (fraction of viewport height) so a spark never shrinks below a visible pixel at playable framing.",
+            "length": [0.08, 0.2],
+            "lengthPerSpeed": 0.026,
+            "thickness": [0.016, 0.034],
+            "minWidth": 0.003
+        },
+        "color": {
+            "start": ["#fff6d2", "#ffd072"],
+            "end": ["#ff5a12", "#b81c05"],
+            "coreWhiteness": 0.5
+        },
+        "brightness": [0.9, 1.6],
+        "flicker": { "amount": 0.3, "speed": 34 },
+        "opacityOverLife": [[0, 0], [0.05, 1], [0.6, 0.9], [1, 0]],
+        "scaleOverLife": [[0, 0.7], [0.15, 1], [1, 0.3]]
+    },
+
+    "embers": {
+        "$about": "Slow glowing motes. They rise, drift on a sine, and pulse. Additive, so overlapping embers build up brightness.",
+        "enabled": true,
+        "maxParticles": 260,
+        "emission": { "rate": 16, "burstCount": [8, 16] },
+        "lifetime": [2.2, 5.2],
+        "spawn": { "radius": 1.3, "height": 0.25, "offset": [0, 0.08, 0] },
+        "velocity": { "rise": [0.4, 1.0], "lateral": 0.18 },
+        "buoyancy": 0.12,
+        "drag": 0.3,
+        "drift": { "amplitude": [0.1, 0.45], "frequency": [0.2, 0.7] },
+        "size": [0.05, 0.14],
+        "color": {
+            "range": ["#ff3c0a", "#ff9b2e"],
+            "accent": "#ffe08a",
+            "accentChance": 0.18
+        },
+        "brightness": [0.65, 1.7],
+        "pulse": { "amount": 0.35, "speed": [1.2, 3.8] },
+        "opacityOverLife": [[0, 0], [0.12, 1], [0.7, 0.85], [1, 0]],
+        "scaleOverLife": [[0, 0.7], [0.25, 1], [1, 0.55]]
+    },
+
+    "smoke": {
+        "$about": "Soft warm-grey puffs. Alpha-blended and intentionally faint: smoke is the one type here that can swallow the gameplay view if over-tuned.",
+        "enabled": true,
+        "maxParticles": 110,
+        "emission": { "rate": 9, "burstCount": [3, 6] },
+        "lifetime": [2.6, 6.0],
+        "spawn": { "radius": 1.0, "height": 0.15, "offset": [0, 0.15, 0] },
+        "velocity": { "rise": [0.35, 0.85], "lateral": 0.3 },
+        "buoyancy": 0.05,
+        "drag": 0.45,
+        "drift": { "amplitude": [0.08, 0.3], "frequency": [0.12, 0.45] },
+        "size": [0.42, 0.9],
+        "expansion": 0.5,
+        "rotation": { "startDeg": [0, 360], "speedDeg": [-20, 20] },
+        "color": {
+            "range": ["#262220", "#584d45"],
+            "accent": "#7d5a44",
+            "accentChance": 0.35
+        },
+        "opacity": [0.2, 0.42],
+        "opacityOverLife": [[0, 0], [0.2, 1], [0.6, 0.8], [1, 0]],
+        "scaleOverLife": [[0, 0.5], [1, 1]]
+    }
+}

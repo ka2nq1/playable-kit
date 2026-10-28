@@ -1,0 +1,26 @@
+{
+    "$schema": "./config.ts (normalizeFirefliesConfig)",
+    "$about": "Ambient fireflies. Data only — no functions, no asset paths. Unknown keys are ignored; invalid values fall back to the defaults in config.ts and are reported in the console.",
+    "version": 1,
+
+    "$placement": "areaSize is the full [x, y, z] extent of the volume, centred on the effect's own origin — position fireflies.object3d to put that centre where you want it. clearRadius hollows out the middle so the play area stays free.",
+    "enabled": true,
+    "count": 60,
+    "areaSize": [16, 5, 11],
+    "clearRadius": 2.6,
+
+    "$look": "Sizes are world units. minScreenSize is a floor in screen space (fraction of viewport height) that keeps the far ones from going sub-pixel. Keep glowIntensity near 1: the halos merge into haze above ~1.5.",
+    "minSize": 0.035,
+    "maxSize": 0.085,
+    "glowIntensity": 1.0,
+    "opacity": 0.85,
+    "minScreenSize": 0.007,
+    "colors": ["#d6f06a", "#a8e04f", "#ffd978"],
+
+    "$motion": "Speeds are world units per second and set how fast a firefly reads, not how far it strays — that follows from areaSize. pulseAmount is the depth of the blink; 1 goes fully dark at the bottom of the cycle.",
+    "minSpeed": 0.12,
+    "maxSpeed": 0.32,
+    "verticalAmplitude": 0.35,
+    "pulseSpeed": 0.9,
+    "pulseAmount": 0.75
+}

@@ -1,0 +1,33 @@
+{
+    "$about": "Heat haze above a hot surface. Every key here is a shader uniform except qualityMode, which picks between two shaders and rebuilds the material, and the four volume dimensions, which also scale the billboard — so everything but the quality switch lands on the next frame with nothing rebuilt. HIGH refracts the real background through one framebuffer grab shared by every heat source in the scene; LOW samples nothing and draws the same field as faint additive filaments. World position is object3d.position, not a key here. Defaults are a lava pool roughly three metres across. Tune in the lab, then paste the exported JSON back over this file.",
+    "enabled": true,
+    "qualityMode": "high",
+    "intensity": 1,
+    "opacity": 0.95,
+
+    "width": 3.2,
+    "depth": 2.4,
+    "height": 2.1,
+    "heightOffset": 0.04,
+    "rotation": 0,
+    "edgeSoftness": 0.55,
+    "verticalFalloff": 1.6,
+
+    "distortionStrength": 0.06,
+    "noiseScale": 1.8,
+    "detailNoiseScale": 5.5,
+    "turbulence": 0.45,
+    "horizontalDistortion": 1,
+    "verticalDistortion": 0.75,
+
+    "riseSpeed": 0.9,
+    "driftSpeed": 0.16,
+    "animationSpeed": 1,
+    "flowVariation": 0.5,
+    "pulsation": 0.3,
+
+    "maxDistance": 45,
+    "fadeDistance": 12,
+
+    "shimmerColor": "#ffd9b0"
+}

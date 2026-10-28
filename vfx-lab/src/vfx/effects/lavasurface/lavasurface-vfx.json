@@ -1,0 +1,28 @@
+{
+    "$about": "Animated lava surface. Every key here is a shader uniform (surfaceSize is also the mesh scale), so edits land on the next frame and nothing is rebuilt or recompiled. Defaults are a dark volcanic plain; the lab's preset buttons show the cooled / molten / stylised ends of the same knobs. Tune in the lab, then paste the exported JSON back over this file.",
+    "enabled": true,
+
+    "crustColor": "#14100f",
+    "secondaryCrustColor": "#36291f",
+    "moltenColor": "#ff5a0f",
+    "hotColor": "#ffd37a",
+    "glowIntensity": 1.15,
+    "colorVariation": 0.68,
+    "crustVariation": 0.55,
+
+    "patternScale": 2.1,
+    "crackWidth": 0.085,
+    "crackVariation": 0.8,
+    "patternDistortion": 0.42,
+    "detailScale": 3.2,
+
+    "flowSpeed": 0.11,
+    "flowDirection": 24,
+    "flowIntensity": 0.6,
+    "heatPulseSpeed": 0.3,
+    "heatPulseIntensity": 0.22,
+
+    "surfaceSize": 60,
+    "displacementIntensity": 0.06,
+    "edgeFade": 1
+}

@@ -1,0 +1,47 @@
+{
+    "$about": "Gas bubbles breaking the surface of stagnant swamp water: a dome swells, holds, tears, and leaves a ring. Defaults are deliberately slow — this is background atmosphere, not boiling water. Tune in the lab, then paste the exported JSON back over this file.",
+    "enabled": true,
+
+    "$spawn": "spawnRate is events per second, not bubbles: a cluster event still counts once. activityVariation is the single knob that decides whether the effect ticks or breathes.",
+    "bubbleCount": 32,
+    "spawnRate": 1.8,
+    "activityVariation": 0.7,
+    "spawnAreaSize": 7,
+    "surfaceOffset": 0.012,
+    "clusterChance": 0.22,
+    "clusterSize": [2, 4],
+
+    "$size": "sizeBias above 1 biases the draw toward the small end, which is what keeps a large bubble an event. 1 would make every size equally likely.",
+    "minBubbleSize": 0.035,
+    "maxBubbleSize": 0.125,
+    "sizeBias": 2.4,
+
+    "$timing": "growthSpeed and popSpeed are inverse seconds; the lifetime pair is the held moment between them, before the film tears.",
+    "growthSpeed": 1.6,
+    "popSpeed": 9,
+    "minLifetime": 0.5,
+    "maxLifetime": 2.4,
+
+    "$look": "bubbleColor is the film's own murk, not a highlight — keep it dark and olive. emergence is how far the dome stands clear of the water: 0.5 is a hemisphere.",
+    "bubbleColor": "#38421f",
+    "bubbleOpacity": 0.8,
+    "highlightIntensity": 0.62,
+    "emergence": 0.68,
+
+    "$ripples": "One faint ring per pop. rippleRadiusScale is a multiple of the bubble's own radius, so a big bubble disturbs more water without a second knob.",
+    "rippleEnabled": true,
+    "rippleSpeed": 0.55,
+    "rippleOpacity": 0.5,
+    "rippleColor": "#a8bd90",
+    "rippleRadiusScale": 6.5,
+    "rippleWidth": 0.035,
+
+    "$splash": "splashProbability is the chance at the top of the size band; it is scaled down by how big the bubble actually was, so small bubbles always pop quietly.",
+    "splashEnabled": true,
+    "splashProbability": 0.45,
+    "splashCount": [2, 5],
+    "splashSpeed": [0.5, 1.25],
+    "splashSize": [0.012, 0.026],
+    "splashGravity": -9.8,
+    "splashColor": ["#d2dfbf", "#879a74"]
+}

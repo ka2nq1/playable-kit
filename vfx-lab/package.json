@@ -1,0 +1,26 @@
+{
+    "name": "vfx-lab",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Authoring lab for hand-written Three.js VFX: build an effect once, preview it live, drop it into a playable.",
+    "type": "module",
+    "scripts": {
+        "start": "vite",
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "typecheck": "tsc --noEmit",
+        "shot": "node scripts/shot.mjs"
+    },
+    "dependencies": {
+        "three": "^0.184.0"
+    },
+    "devDependencies": {
+        "@types/three": "^0.184.1",
+        "typescript": "~5.9.3",
+        "vite": "^6.4.2"
+    },
+    "engines": {
+        "node": ">=18"
+    }
+}

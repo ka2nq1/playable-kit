@@ -1,0 +1,105 @@
+{
+    "$schema": "./config.ts (normalizeWaterConfig)",
+    "$about": "Water ripple VFX. Data only — no functions, no asset paths. Unknown keys are ignored; invalid values fall back to the defaults in config.ts and are reported in the console.",
+    "version": 1,
+
+    "quality": {
+        "$about": "Multipliers applied on top of the pools and the per-event ring count. Switch presets at runtime; no buffers are reallocated.",
+        "preset": "high",
+        "presets": {
+            "low": { "particles": 0.5, "rings": 0.6 },
+            "high": { "particles": 1.0, "rings": 1.0 }
+        }
+    },
+
+    "ripples": {
+        "$about": "The expanding rings. maxRipples counts RINGS, not events: a 3-ring impact occupies three slots. surfaceOffset lifts the rings off the water plane so they do not z-fight with it.",
+        "enabled": true,
+        "maxRipples": 48,
+        "surfaceOffset": 0.015,
+        "troughColor": "#02100d",
+        "defaults": {
+            "$about": "Fallbacks for every preset and every emit() option. A preset only lists what it changes.",
+            "rings": 2,
+            "ringDelay": 0.16,
+            "startRadius": 0.05,
+            "maxRadius": 1.4,
+            "duration": 1.8,
+            "width": 0.11,
+            "widthGrowth": 0.65,
+            "intensity": 0.6,
+            "wobble": 0.045,
+            "jitter": 0.3,
+            "scale": 1.0,
+            "priority": 1,
+            "color": "#cfece2"
+        },
+        "opacityOverLife": [[0, 0], [0.08, 1], [0.5, 0.7], [1, 0]]
+    },
+
+    "spray": {
+        "$about": "Droplets thrown off the surface by an event. Burst-only — nothing here emits on a timer. Droplets die as soon as they fall back to the surface.",
+        "enabled": true,
+        "maxParticles": 160,
+        "emission": { "burstCount": [8, 14] },
+        "lifetime": [0.35, 0.8],
+        "spawn": { "radius": 0.09, "height": 0.04 },
+        "direction": { "upward": 0.72, "spreadDeg": 34 },
+        "velocity": { "speed": [1.1, 2.6] },
+        "gravity": -9.8,
+        "drag": 0.5,
+        "size": [0.018, 0.05],
+        "opacity": [0.45, 0.85],
+        "color": { "range": ["#e8f7f2", "#a4d4c8"] },
+        "opacityOverLife": [[0, 1], [0.6, 0.9], [1, 0]],
+        "scaleOverLife": [[0, 1], [1, 0.65]]
+    },
+
+    "defaultPreset": "impact",
+
+    "presets": {
+        "$about": "Event types. Every key here becomes a preset name usable as water.emit(name, position) — adding one is a config edit, not a code change. Each preset inherits ripples.defaults and overrides what it needs.",
+
+        "impact": {
+            "$about": "Something fell into the water. Tight, bright, three quick rings plus a few droplets.",
+            "rings": 3,
+            "ringDelay": 0.13,
+            "startRadius": 0.05,
+            "maxRadius": 1.5,
+            "duration": 1.5,
+            "width": 0.1,
+            "intensity": 0.8,
+            "priority": 2,
+            "spray": { "count": 10, "speedScale": 1.0 }
+        },
+
+        "emergence": {
+            "$about": "Something rose through the surface. Starts wide, keeps expanding well after the object is clear of the water. Pass { scale: 0.6 } for a subtle surfacing or { scale: 1.4 } for a dramatic one.",
+            "rings": 4,
+            "ringDelay": 0.28,
+            "startRadius": 0.45,
+            "maxRadius": 3.4,
+            "duration": 2.9,
+            "width": 0.2,
+            "widthGrowth": 0.8,
+            "intensity": 0.85,
+            "wobble": 0.08,
+            "priority": 3,
+            "spray": { "count": 22, "speedScale": 1.3 }
+        },
+
+        "ambient": {
+            "$about": "Background disturbance. Deliberately faint and low priority, so it is the first thing recycled when the pool fills — it must never cost a splash the player is watching.",
+            "rings": 2,
+            "ringDelay": 0.34,
+            "startRadius": 0.04,
+            "maxRadius": 0.85,
+            "duration": 2.2,
+            "width": 0.07,
+            "intensity": 0.3,
+            "wobble": 0.05,
+            "priority": 0,
+            "spray": { "count": 0, "speedScale": 0 }
+        }
+    }
+}
