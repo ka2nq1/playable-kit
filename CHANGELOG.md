@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Skill `daily-report` moved into the kit (was a local skill on one machine).
+
 ## 0.1.0 — 2026-10-28
 
 - Editor merged from Basketball Stars 1v1 (V mode: marker = effect, per-instance settings, Place tab, panel tabs as a dropdown, dev/ outside the Vite root, serve-only plugin) and Pure Sniper Choice-Driven (named waypoints kept on delete, camera FOV / camera-children helpers, project tabs), on three-path-editor 0.5.0 (isolateUi, pivotUnderPointer, yaw gizmo, Visuals tab, camera rigs).
