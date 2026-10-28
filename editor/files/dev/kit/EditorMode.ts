@@ -1,60 +1,75 @@
 /**
  * The editor: place, drag and tune things in the running game, and save the result into the project.
  *
- * One panel, built from independent tabs:
- *  - **Paths** — three-path-editor: every marker and route, moved with the gizmo. Its Save writes
+ * One window (or a column docked to the game), a menu bar of sections:
+ *  - **Scene** — three-path-editor: every marker and route, moved with the gizmo; its Save writes
  *    the placements file.
- *  - **Place** — add map effects and one-shots, see what the scene holds.
+ *  - **VFX** — the grid of effects with live previews; a click opens one effect's editor.
  *  - **Tune** — JSON configs the game reads live (`tunables`).
- *  - one tab per map effect in `dev/vfx/registry.ts`, editing one instance at a time.
- *  - the project's own tabs (`tabs`).
+ *  - the project's own sections (`tabs`).
  *
  * Nothing here creates a scene, camera, renderer or loop; it borrows the game's, as described by
  * `dev/editor.config.ts`, and hands everything back on exit. The whole module is dev-only by
  * absence: it sits outside `src/` and is reached only from `boot.ts`, which the dev server injects.
  */
 
-import type { Camera } from "three";
+import { Vector3, type Camera } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { PathEditor, PathEditorPanel, type EditActionContext, type EditorAction, type Path } from "../vendor/three-path-editor/editor.js";
 import { kitHost } from "../../src/kit/host";
-import { MAP_VFX_CONFIG_KEY, MAP_VFX_KEY, setLiveFile } from "../../src/kit/markers";
+import { MAP_VFX_CONFIG_KEY, MAP_VFX_KEY, readMarkers, setLiveFile } from "../../src/kit/markers";
 import type { MapVfxInstanceBase } from "../../src/kit/MapVfxInstances";
 import { ControlPanel } from "./ui/ControlPanel";
-import { useTabDropdown } from "./ui/tabSelect";
-import "./ui/embed.css";
+import { Shell } from "./ui/Shell";
 import type { EditorConfig, EditorContext } from "./config";
 import type { VfxDevEntry } from "./registry";
 import { defaultsFor, defaultsPath } from "./defaults";
-import { saveJsonToProject } from "./devSave";
-import { buildPlaceTab } from "./panels/placeTab";
+import { disableSaving, saveJsonToProject, savingDisabled } from "./devSave";
 import { buildTuneTab } from "./panels/tuneTab";
 import { PanelPopout } from "./popout";
 import { NamedPointKeeper } from "./NamedPointKeeper";
+import { VfxPreviewer } from "./preview";
+import { VfxView } from "./views/vfxView";
 
 /** Live readouts refresh at this interval, in seconds. */
 const REFRESH_INTERVAL = 0.25;
+const ONE_SHOT_KEY = "vfx";
+
+const SHORTCUTS: ReadonlyArray<[string, string]> = [
+    ["V", "open / close the editor"],
+    ["Click", "select a point"],
+    ["Drag", "orbit · right-drag pans · wheel zooms"],
+    ["R", "move ↔ rotate gizmo"],
+    ["G", "show / hide gizmos"],
+    ["Shift+click", "add a point to the selected route"],
+    ["Delete", "remove the selected point"],
+    ["Ctrl+Z", "undo"],
+];
 
 export class EditorMode {
     private editor: PathEditor | null = null;
     private orbit: OrbitControls | null = null;
-    private panel: PathEditorPanel | null = null;
-    private tabs: ControlPanel[] = [];
-    private popout: PanelPopout;
+    private shell: Shell | null = null;
+    private scenePanel: PathEditorPanel | null = null;
+    private vfxView: VfxView | null = null;
+    private readonly previewer = new VfxPreviewer();
+    private readonly panels: ControlPanel[] = [];
+    private readonly popout: PanelPopout;
     private names: NamedPointKeeper | null = null;
 
-    /** Which point each effect's tab is pointed at, so a rebuild does not lose your place. */
+    /** Which point each effect's editor is pointed at, so a rebuild does not lose your place. */
     private readonly selected = new Map<string, string>();
 
     private active = false;
     private camera: Camera | null = null;
     private lastTime = 0;
     private sinceRefresh = 0;
-    /** Set while the pointer is down inside the panel, so a refresh can't fight a drag. */
+    /** Set while the pointer is down inside the editor, so a refresh can't fight a drag. */
     private editing = false;
 
     constructor(private readonly config: EditorConfig) {
         this.popout = new PanelPopout(config.title);
+        if (config.saveDisabled) disableSaving(config.saveDisabled);
     }
 
     get enabled(): boolean {
@@ -72,7 +87,8 @@ export class EditorMode {
         this.active = true;
 
         this.editor?.enable();
-        this.panel?.setVisible(true);
+        this.shell?.setVisible(true);
+        this.vfxView?.render();
         if (this.orbit) {
             this.orbit.enabled = true;
             // After enable(): `detachCamera` lifts the camera out of its rig there, and orbiting a
@@ -86,16 +102,16 @@ export class EditorMode {
         this.popout.show();
 
         this.lastTime = performance.now();
-        console.info("[editor] ON — press the toggle key again to leave");
     }
 
     disable(): void {
         if (!this.active) return;
         this.active = false;
 
+        this.previewer.stop();
         this.popout.hide();
         this.editor?.disable();
-        this.panel?.setVisible(false);
+        this.shell?.setVisible(false);
         if (this.orbit) this.orbit.enabled = false;
 
         this.config.onDisable?.();
@@ -120,9 +136,7 @@ export class EditorMode {
             renderer: config.renderer,
             // The playable's HUD covers the canvas and would swallow every press.
             isolateUi: true,
-            // Orbit with the mouse; the editor suspends the controls for the length of a gizmo drag.
             cameraControls: this.orbit,
-            // Keeps zoom and pan from stalling near a fixed pivot.
             pivotUnderPointer: true,
             // Game cameras are usually parented to a rig that writes them every frame.
             detachCamera: true,
@@ -140,63 +154,115 @@ export class EditorMode {
         // `__editor.moveWaypoint("waterfog", 0, [x, y, z])` is exactly what the gizmo does.
         (window as unknown as { __editor: PathEditor }).__editor = this.editor;
 
-        this.buildPanel();
+        this.buildShell();
         config.onFrame(() => this.update());
     }
 
-    /**
-     * The panel and its tabs. Rebuilt rather than patched whenever which controls exist changes
-     * (an instance added, another picked): the package's panel appends tabs, it does not replace them.
-     */
-    private buildPanel(): void {
-        const editor = this.editor;
-        if (!editor) return;
+    private buildShell(): void {
+        const editor = this.editor!;
         const config = this.config;
+        const shell = new Shell(config.title, config.saveDisabled);
+        this.shell = shell;
+        const saveNote = config.saveDisabled ? "Demo: Save is here to show the flow — it writes files only in a real project under npm start." : undefined;
 
-        const activeTab = this.panel?.activeTab ?? 0;
-        this.panel?.dispose();
-        this.tabs.length = 0;
-
-        this.panel = new PathEditorPanel(editor, {
-            title: config.title,
-            tabLabel: "Paths",
+        // ---- Scene: the path editor's own panel --------------------------------------------------
+        const scene = shell.addSection("scene", "Scene");
+        scene.append(heading("Scene", "Every marker and route in the placements file. Select a point in the game view and drag it with the gizmo — what stands on it follows in the same frame."));
+        scene.appendChild(shortcuts());
+        if (saveNote) scene.appendChild(note(saveNote));
+        const host = document.createElement("div");
+        scene.appendChild(host);
+        this.scenePanel = new PathEditorPanel(editor, {
+            container: host,
+            title: config.placementsPath(),
             fileName: config.placementsPath().split("/").pop(),
-            hideWhenDisabled: true,
-            onSave: (json) => saveJsonToProject(config.placementsPath(), json),
+            onSave: (json) =>
+                saveJsonToProject(config.placementsPath(), json).then(
+                    () => shell.setStatus(`Saved ${config.placementsPath()}`, "ok"),
+                    (err) => {
+                        shell.setStatus(String(err.message ?? err), "error");
+                        throw err;
+                    },
+                ),
             visuals: false,
             ...config.panel,
         });
 
-        this.panel.addTab(
-            this.tab("Place", (panel) =>
-                buildPlaceTab(panel, editor, config.vfx, config.oneShots, {
-                    add: (entry) => this.addInstance(entry),
-                    placementsPath: () => config.placementsPath(),
-                    nextId: (base) => nextId(editor, base),
-                }),
-            ),
-        );
-        if (config.tunables?.length) this.panel.addTab(this.tab("Tune", (panel) => buildTuneTab(panel, config.tunables!)));
-        for (const entry of config.vfx) this.panel.addTab(this.tab(entry.label, (panel) => this.buildEntry(entry, panel)));
-        const ctx = this.context();
-        for (const tab of config.tabs ?? []) this.panel.addTab(this.tab(tab.label, (panel) => tab.build(panel, ctx)));
+        // ---- VFX ------------------------------------------------------------------------------
+        const vfx = shell.addSection("vfx", "VFX", () => this.vfxView?.render());
+        this.vfxView = new VfxView(vfx, {
+            entries: config.vfx,
+            oneShots: config.oneShots,
+            previewer: this.previewer,
+            saveNote,
+            selectedPoint: (entry) => this.selected.get(entry.id),
+            selectPoint: (entry, markerId) => {
+                this.selected.set(entry.id, markerId);
+                editor.select(markerId);
+            },
+            add: (entry) => this.addInstance(entry),
+            duplicate: (entry, instance) => this.duplicateInstance(entry, instance),
+            remove: (instance) => {
+                editor.removePath(instance.markerId);
+                this.vfxView?.render();
+            },
+            save: (entry, instance) => this.saveInstance(entry, instance),
+            saveAsDefault: (entry, instance) => this.save(defaultsPath(entry.id), JSON.stringify(entry.exportConfig(instance), null, 4)),
+            copy: (entry, instance) => copyToClipboard(JSON.stringify(entry.exportConfig(instance), null, 4)).then((ok) => shell.setStatus(ok ? `${entry.label} config copied` : "Clipboard unavailable — the config is in the console", ok ? "ok" : "error")),
+            moveTo: (instance, position) => editor.moveWaypoint(instance.markerId, 0, position.toArray()),
+            placeOneShot: (id) => editor.createMarker({ id: nextId(editor, id.toLowerCase()), metadata: { [ONE_SHOT_KEY]: id }, select: true }),
+            playOneShots: () => this.playOneShots(),
+        });
 
-        const row = useTabDropdown(this.panel);
-        if (row) row.appendChild(this.popoutButton());
-        if (activeTab) this.panel.selectTab(activeTab);
-        this.panel.setVisible(this.active);
-        this.popout.attach(this.panel.element);
+        // ---- Tune -----------------------------------------------------------------------------
+        if (config.tunables?.length) {
+            const tune = shell.addSection("tune", "Tune");
+            tune.append(heading("Tune", "Gameplay numbers the game reads live. Drag and watch; Save writes the JSON back."));
+            tune.appendChild(this.panel("Tune", (panel) => buildTuneTab(panel, config.tunables!, saveNote)).dom);
+        }
+
+        // ---- Project sections -----------------------------------------------------------------
+        const ctx = this.context();
+        for (const tab of config.tabs ?? []) {
+            const section = shell.addSection(`tab-${tab.label}`, tab.label);
+            section.append(heading(tab.label, ""));
+            section.appendChild(this.panel(tab.label, (panel) => tab.build(panel, ctx)).dom);
+        }
+
+        shell.actions.appendChild(this.windowButton());
+        shell.root.addEventListener("pointerdown", () => {
+            this.editing = true;
+            // The pointer comes up in whichever window holds the editor — docked or popped out.
+            const win = shell.root.ownerDocument.defaultView ?? window;
+            win.addEventListener("pointerup", () => (this.editing = false), { once: true });
+        });
+
+        document.body.appendChild(shell.root);
+        shell.setVisible(false);
+        shell.restore();
+        this.popout.attach(shell.root);
     }
 
-    private popoutButton(): HTMLButtonElement {
+    private panel(label: string, build: (panel: ControlPanel) => void): ControlPanel {
+        const panel = new ControlPanel(label);
+        build(panel);
+        this.panels.push(panel);
+        return panel;
+    }
+
+    private windowButton(): HTMLButtonElement {
         const button = document.createElement("button");
         button.type = "button";
+        button.className = "kit-btn kit-ghost";
         const label = () => {
-            button.textContent = this.popout.isOpen ? "Dock" : "Window";
-            button.title = this.popout.isOpen ? "Put the panel back over the game" : "Open the panel in a separate window";
+            button.textContent = this.popout.isOpen ? "⇲ Dock" : "⧉ Window";
+            button.title = this.popout.isOpen ? "Put the editor back beside the game" : "Open the editor in its own window";
         };
         label();
-        this.popout.onChange(label);
+        this.popout.onChange(() => {
+            label();
+            this.shell?.setDocked(!this.popout.isOpen);
+        });
         button.addEventListener("click", () => this.popout.toggle());
         return button;
     }
@@ -204,73 +270,42 @@ export class EditorMode {
     private context(): EditorContext {
         return {
             editor: this.editor!,
-            save: (file, json) => saveJsonToProject(file, json),
+            save: (file, json) => this.save(file, json),
             saveIntoPath: (pathId, metadata) => {
                 const editor = this.editor!;
                 const path = editor.getPath(pathId);
                 if (!path) return Promise.reject(new Error(`no path "${pathId}" to save into`));
                 path.setMetadata({ ...(path.metadata as Record<string, unknown>), ...metadata });
-                return saveJsonToProject(this.config.placementsPath(), editor.exportString(2));
+                return this.save(this.config.placementsPath(), editor.exportString(2));
             },
-            rebuild: () => this.buildPanel(),
+            rebuild: () => this.vfxView?.render(),
         };
     }
 
-    /**
-     * One effect's tab: the instance picker, then the controls for the picked instance. An effect
-     * with no points at all is a tab that offers to place the first one.
-     */
-    private buildEntry(entry: VfxDevEntry, panel: ControlPanel): void {
-        const instances = entry.instances();
-        if (!instances.length) {
-            const folder = panel.folder(`No ${entry.label.toLowerCase()} here yet`);
-            folder.buttons({ label: `Place ${entry.label.toLowerCase()}`, primary: true, onClick: () => this.addInstance(entry) });
-            folder.note("Every effect is a point you can see, drag and delete. Placing one drops it in front of you with the starting settings from src/resources/editor/defaults/.");
-            return;
-        }
+    // ---- Instances ----------------------------------------------------------------------------
 
-        const instance = instances.find((i) => i.markerId === this.selected.get(entry.id)) ?? instances[0];
-        this.selected.set(entry.id, instance.markerId);
-
-        const which = panel.folder(`${entry.label} · ${instance.markerId}`);
-        if (instances.length > 1) {
-            which.select<string>("Point", instances.map((i) => i.markerId), () => instance.markerId, (v) => {
-                this.selected.set(entry.id, v);
-                this.editor?.select(v);
-                this.buildPanel();
-            });
-        }
-        which.buttons(
-            { label: entry.singleton ? "Only one per scene" : "+ Another", onClick: () => this.addInstance(entry) },
-            { label: "Duplicate", onClick: () => this.duplicateInstance(entry, instance) },
-            { label: "Delete", onClick: () => this.deleteInstance(instance) },
-        );
-
-        entry.build(panel, instance, {
-            instanceId: instance.markerId,
-            save: () => this.saveInstance(entry, instance, panel),
-            moveTo: (position) => this.editor?.moveWaypoint(instance.markerId, 0, position.toArray()),
-            copy: () => copyToClipboard(JSON.stringify(entry.exportConfig(instance), null, 4), entry.id),
-            saveAsDefault: () => this.save(defaultsPath(entry.id), JSON.stringify(entry.exportConfig(instance), null, 4), panel),
-        });
+    private startingConfig(entry: VfxDevEntry): unknown {
+        const saved = defaultsFor(entry.id) as object;
+        return Object.keys(saved).length ? saved : (entry.defaultConfig?.() ?? {});
     }
 
     private addInstance(entry: VfxDevEntry): void {
         const editor = this.editor;
         if (!editor) return;
         if (entry.singleton && entry.instances().length) {
-            console.warn(`[editor] ${entry.id} is one per scene — move or delete the point it already has`);
+            this.shell?.setStatus(`${entry.label} is one per scene — move or delete the one it has`, "error");
             return;
         }
         const spot = entry.spot();
         const created = editor.createMarker({
             id: nextId(editor, entry.id),
-            metadata: { [MAP_VFX_KEY]: entry.id, [MAP_VFX_CONFIG_KEY]: defaultsFor(entry.id) },
+            metadata: { [MAP_VFX_KEY]: entry.id, [MAP_VFX_CONFIG_KEY]: this.startingConfig(entry) },
             position: spot ? spot.toArray() : undefined,
             select: true,
         });
         this.selected.set(entry.id, created.id);
-        this.buildPanel();
+        this.vfxView?.open(entry.id);
+        this.shell?.setStatus(`Placed ${created.id} — drag it into place in the game view`, "ok");
     }
 
     private duplicateInstance(entry: VfxDevEntry, instance: MapVfxInstanceBase): void {
@@ -284,30 +319,34 @@ export class EditorMode {
             select: true,
         });
         this.selected.set(entry.id, created.id);
-        this.buildPanel();
-    }
-
-    private deleteInstance(instance: MapVfxInstanceBase): void {
-        this.editor?.removePath(instance.markerId);
-        this.buildPanel();
+        this.vfxView?.render();
     }
 
     /** Writes an instance's settings into its own point and saves the placements file. */
-    private saveInstance(entry: VfxDevEntry, instance: MapVfxInstanceBase, panel: ControlPanel): void {
+    private saveInstance(entry: VfxDevEntry, instance: MapVfxInstanceBase): void {
         const editor = this.editor;
         const path = editor?.getPath(instance.markerId);
         if (!editor || !path) {
-            console.warn(`[editor] ${instance.markerId} is no longer in the editor — nothing saved`);
+            this.shell?.setStatus(`${instance.markerId} is no longer in the scene — nothing saved`, "error");
             return;
         }
         path.setMetadata({ ...(path.metadata as Record<string, unknown>), [MAP_VFX_KEY]: entry.id, [MAP_VFX_CONFIG_KEY]: entry.exportConfig(instance) });
-        this.save(this.config.placementsPath(), editor.exportString(2), panel);
+        void this.save(this.config.placementsPath(), editor.exportString(2));
+    }
+
+    private playOneShots(): void {
+        const oneShots = this.config.oneShots;
+        if (!oneShots || !this.editor) return;
+        const at = new Vector3();
+        for (const marker of readMarkers(this.editor.export())) {
+            const id = marker.metadata[ONE_SHOT_KEY];
+            if (typeof id === "string") oneShots.play(id, at.fromArray(marker.position), marker.yaw);
+        }
     }
 
     /**
      * Every editor change — a drag, an add, a delete, an import — is pushed into the kit's marker
-     * store, which re-seats every effect and route subscribed to it. The export is the whole file
-     * each time: a handful of points, and only while the editor is open.
+     * store, which re-seats every effect and route subscribed to it.
      */
     private followPlacements(editor: PathEditor): void {
         const sync = () => setLiveFile(editor.export());
@@ -331,24 +370,11 @@ export class EditorMode {
         return orbit;
     }
 
-    private tab(label: string, build: (panel: ControlPanel) => void): { label: string; element: HTMLElement } {
-        const panel = new ControlPanel(label);
-        build(panel);
-        panel.dom.addEventListener("pointerdown", () => {
-            this.editing = true;
-            // The pointer comes up in whichever window holds the panel — docked or popped out.
-            const win = panel.dom.ownerDocument.defaultView ?? window;
-            win.addEventListener("pointerup", () => (this.editing = false), { once: true });
-        });
-        this.tabs.push(panel);
-        return { label, element: panel.dom };
-    }
-
-    private save(file: string, json: string, panel: ControlPanel): void {
-        saveJsonToProject(file, json)
-            .then(() => console.info(`[editor] saved ${file}`))
-            .catch((err) => console.warn(`[editor] save failed: ${String(err)}`))
-            .finally(() => panel.refresh());
+    private save(file: string, json: string): Promise<void> {
+        return saveJsonToProject(file, json).then(
+            () => this.shell?.setStatus(`Saved ${file}`, "ok"),
+            (err) => this.shell?.setStatus(savingDisabled() ?? `Save failed: ${String(err?.message ?? err)}`, savingDisabled() ? "info" : "error"),
+        );
     }
 
     private update(): void {
@@ -373,13 +399,51 @@ export class EditorMode {
         this.orbit?.update();
         this.editor.update(dt);
         for (const entry of this.config.vfx) entry.tick(dt);
+        this.previewer.tick(dt);
 
         this.sinceRefresh += dt;
         if (this.sinceRefresh >= REFRESH_INTERVAL && !this.editing) {
             this.sinceRefresh = 0;
-            for (const panel of this.tabs) panel.refresh();
+            for (const panel of this.panels) panel.refresh();
+            this.vfxView?.refresh();
+            const placed = this.vfxView?.placedTotal ?? 0;
+            this.shell?.setBadge("vfx", placed ? String(placed) : "");
         }
     }
+}
+
+function heading(title: string, lead: string): DocumentFragment {
+    const fragment = document.createDocumentFragment();
+    const h = document.createElement("h2");
+    h.textContent = title;
+    fragment.appendChild(h);
+    if (lead) {
+        const p = document.createElement("p");
+        p.className = "kit-lead";
+        p.textContent = lead;
+        fragment.appendChild(p);
+    }
+    return fragment;
+}
+
+function shortcuts(): HTMLElement {
+    const list = document.createElement("div");
+    list.className = "kit-keys";
+    for (const [key, what] of SHORTCUTS) {
+        const row = document.createElement("div");
+        const kbd = document.createElement("kbd");
+        kbd.textContent = key;
+        row.append(kbd, document.createTextNode(what));
+        list.appendChild(row);
+    }
+    return list;
+}
+
+function note(text: string): HTMLElement {
+    const p = document.createElement("p");
+    p.className = "kit-save-note";
+    p.textContent = text;
+    return p;
 }
 
 /** `waterfog`, `waterfog-2`, `waterfog-3`… — readable ids that read well in the pickers. */
@@ -391,12 +455,12 @@ function nextId(editor: PathEditor, base: string): string {
     }
 }
 
-async function copyToClipboard(text: string, what: string): Promise<void> {
+async function copyToClipboard(text: string): Promise<boolean> {
     try {
         await navigator.clipboard.writeText(text);
-        console.info(`[editor] ${what} config copied to clipboard`);
+        return true;
     } catch {
-        console.warn("[editor] clipboard unavailable — config printed below instead");
         console.log(text);
+        return false;
     }
 }

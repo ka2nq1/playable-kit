@@ -18,14 +18,15 @@
  */
 
 const WINDOW_NAME = "playable-kit-editor";
-const WINDOW_FEATURES = "popup,width=480,height=920";
+const WINDOW_FEATURES = "popup,width=1180,height=900";
 const PREF_KEY = "playable-kit:editor-popout";
 
+/** The window is the default home of the panel; docking is what has to be asked for. */
 function readPref(): boolean {
     try {
-        return localStorage.getItem(PREF_KEY) === "1";
+        return localStorage.getItem(PREF_KEY) !== "0";
     } catch {
-        return false;
+        return true;
     }
 }
 

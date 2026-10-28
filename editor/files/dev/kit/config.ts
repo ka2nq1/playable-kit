@@ -38,8 +38,13 @@ export interface OneShotEffects {
 }
 
 export interface EditorConfig {
-    /** Panel title, e.g. "Basketball · Swamp". */
+    /** Window title and menu-bar name, e.g. "Basketball · Swamp". */
     title: string;
+    /**
+     * Turns every Save into a no-op and shows this text beside the Save buttons. Only for the public
+     * demo — a real playable saves through the dev server.
+     */
+    saveDisabled?: string;
     /** The game's scene: the editor draws its helpers here. */
     scene: Object3D;
     renderer: { domElement: HTMLElement };
@@ -67,7 +72,7 @@ export interface EditorConfig {
     oneShots?: OneShotEffects;
     /** JSON configs edited in the Tune tab (gameplay numbers, timings, colours). */
     tunables?: readonly Tunable[];
-    /** Project tabs, appended after the kit's own. */
+    /** Project sections, appended to the menu bar after the kit's own. */
     tabs?: readonly EditorTab[];
     /**
      * Named waypoints (`metadata.name`) survive deletion by handing their name to a neighbour —

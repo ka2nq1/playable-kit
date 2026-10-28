@@ -1,49 +1,35 @@
 import type { ControlPanel } from "../../kit/ui/ControlPanel";
 import type { VfxPanelContext } from "../../kit/registry";
-import { buildAnchorFolder } from "../../kit/panels/anchorFolder";
-import WaterFogC, { type WaterFogInstance } from "../../../src/controllers/VFX/WaterFogC";
+import type { MapVfxInstance } from "../../../src/kit/defineMapVfx";
+import type { WaterFogVfx } from "../../../src/vfx/effects/waterfog";
 
 /**
- * The mist's controls, ported from vfx-lab's `waterFogLabEffect` — same bindings, with the lab's
- * download buttons replaced by Save (into this instance's point) and an Anchor folder.
+ * A curated panel, as an example of replacing the generated one (`controls` in `vfxEntry`): fewer
+ * controls than the config has, grouped by what you are judging, with notes on cost. Save, Copy,
+ * the point picker and the Anchor folder come from the editor around it.
  *
- * Judge it from the game camera: fog is a grazing-angle effect.
+ * Judge fog from the game camera: it is a grazing-angle effect.
  */
-export function buildWaterFogPanel(panel: ControlPanel, instance: WaterFogInstance, ctx: VfxPanelContext): void {
+export function buildWaterFogPanel(panel: ControlPanel, instance: MapVfxInstance<WaterFogVfx>, _ctx: VfxPanelContext): void {
     const fog = instance.vfx;
     const cfg = fog.config;
     const apply = () => fog.applyConfig();
 
-    const main = panel.folder("Water fog");
-    main.toggle("Enabled", () => fog.enabled, (v) => (fog.enabled = v));
-    main.slider("Opacity", { min: 0, max: 1, step: 0.01 }, () => cfg.opacity, (v) => {
+    const look = panel.folder("Look");
+    look.slider("Opacity", { min: 0, max: 1, step: 0.01 }, () => cfg.opacity, (v) => {
         cfg.opacity = v;
         apply();
     });
-    main.slider("Density", { min: 0, max: 1, step: 0.01 }, () => cfg.density, (v) => {
+    look.slider("Density", { min: 0, max: 1, step: 0.01 }, () => cfg.density, (v) => {
         cfg.density = v;
         apply();
     });
-    main.color("Fog colour", () => cfg.fogColor, (v) => {
+    look.color("Fog colour", () => cfg.fogColor, (v) => {
         cfg.fogColor = v;
         apply();
     });
-    main.buttons({ label: "Save point", onClick: () => ctx.save(), primary: true }, { label: "Save as default", onClick: () => ctx.saveAsDefault() });
-    main.buttons(
-        { label: "Start", onClick: () => fog.start() },
-        { label: "Stop", onClick: () => fog.stop() },
-        { label: "Reset", onClick: () => fog.reset() },
-    );
 
-    buildAnchorFolder(panel, {
-        markerId: instance.markerId,
-        anchor: instance.anchor,
-        object3d: fog.object3d,
-        refit: () => WaterFogC.fit(instance),
-        fitSizeNote: "spans the layers across the mesh's width",
-    });
-
-    const layout = panel.folder("Layout", false);
+    const layout = panel.folder("Layout");
     layout.slider("Area size", { min: 4, max: 200, step: 0.5 }, () => cfg.areaSize, (v) => {
         cfg.areaSize = v;
         apply();
@@ -63,7 +49,7 @@ export function buildWaterFogPanel(panel: ControlPanel, instance: WaterFogInstan
     layout.readout("Layers drawn", () => `${fog.activeCount}`);
     layout.note("Layers are the fill-rate cost: each one is another transparent pass. 2–3 ships.");
 
-    const motion = panel.folder("Motion", false);
+    const motion = panel.folder("Motion");
     motion.slider("Drift speed", { min: 0, max: 0.6, step: 0.005 }, () => cfg.driftSpeed, (v) => {
         cfg.driftSpeed = v;
         apply();
@@ -73,7 +59,7 @@ export function buildWaterFogPanel(panel: ControlPanel, instance: WaterFogInstan
         apply();
     });
 
-    const shape = panel.folder("Shape", false);
+    const shape = panel.folder("Shape");
     shape.slider("Noise scale", { min: 0.02, max: 0.8, step: 0.005 }, () => cfg.noiseScale, (v) => {
         cfg.noiseScale = v;
         apply();
@@ -83,6 +69,4 @@ export function buildWaterFogPanel(panel: ControlPanel, instance: WaterFogInstan
         apply();
     });
     shape.note("Detail scale carves the wisps. Keep it well above noise scale or the two beat.");
-
-    panel.folder("Config", false).buttons({ label: "Copy JSON", onClick: () => ctx.copy() });
 }

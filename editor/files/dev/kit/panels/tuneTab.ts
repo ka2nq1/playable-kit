@@ -23,7 +23,7 @@ export interface Tunable {
     onChange?(path: string): void;
 }
 
-export function buildTuneTab(panel: ControlPanel, tunables: readonly Tunable[]): void {
+export function buildTuneTab(panel: ControlPanel, tunables: readonly Tunable[], saveNote?: string): void {
     tunables.forEach((tunable, i) => {
         const folder = buildAutoPanel(panel, tunable.label, tunable.value, {
             schema: tunable.schema,
@@ -43,5 +43,6 @@ export function buildTuneTab(panel: ControlPanel, tunables: readonly Tunable[]):
             },
         });
         folder.readout("Status", () => status || tunable.file);
+        if (saveNote) folder.note(saveNote);
     });
 }

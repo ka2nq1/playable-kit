@@ -8,6 +8,7 @@ One repository for everything a playable takes from us, copied into playables as
 | `vfx-lab/` | effects workbench; `vfx-lab/src/vfx/` is what playables copy | `vfx-lab/CLAUDE.md` |
 | `path-editor/` | three-path-editor source (tests, demo, build) | `path-editor/CLAUDE.md` |
 | `vfx/` | adapters that make lab effects editor map effects | `vfx/ADAPTER.md` |
+| `demo/` | a real playable built from the kit's files, published to GitHub Pages on every push | below |
 | `skills/`, `agents/`, `rules/` | Claude Code side | — |
 
 Work inside `vfx-lab/` or `path-editor/` follows that folder's CLAUDE.md as well. Each has its own
@@ -25,6 +26,9 @@ Work inside `vfx-lab/` or `path-editor/` follows that folder's CLAUDE.md as well
 - `editor/templates/**` are scaffolded once and then belong to the playable — never tracked.
 - The editor's vendored path editor (`editor/files/*/vendor/three-path-editor/`) is generated: change
   `path-editor/src`, then `npm run vendor`. Never edit the vendored copy.
+- `demo/` is a playable, not a showcase page: it imports kit files only through the playable layout
+  (`demo/vite.config.ts`), never by reaching into kit folders. If the demo needs a hack, a playable
+  would too — fix the kit. Every new adapter is registered in the demo.
 - A change that requires playables to change something is **breaking**: say exactly what in
   `CHANGELOG.md`, and update `editor/INTEGRATION.md`.
 - Skills in `skills/` are linked into `~/.claude/skills` by `scripts/link.sh`; keep them short,

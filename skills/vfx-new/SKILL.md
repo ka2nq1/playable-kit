@@ -39,19 +39,20 @@ node KIT/scripts/kit.mjs copy <playable> vfx-lab/src/vfx/core src/vfx/core      
 node KIT/scripts/kit.mjs copy <playable> vfx-lab/src/vfx/effects/<id> src/vfx/effects/<id>
 ```
 
-Then per ADAPTER.md: controller `src/controllers/VFX/<Name>C.ts`, panel `dev/vfx/panels/<name>Panel.ts`
-(port `buildControls`), entry in `dev/vfx/registry.ts`, `src/resources/editor/defaults/<id>.json`,
-`<Name>C.init()` in the game next to the other map effects. Editor not installed in this playable →
-stop and offer `/kit-install-editor` first.
+A new effect also gets its adapter in the kit first — `KIT/vfx/adapters/<id>/` (copy the closest
+one: `src/controllers/VFX/<Name>C.ts` with `defineMapVfx`, `dev/vfx/entries/<id>.ts` with `vfxEntry`;
+the generated controls usually suffice, add a `schema` for bad ranges). Register it in the demo
+(`KIT/demo/src/game/vfx.ts` and `KIT/demo/dev/vfx/registry.ts`) so it shows in the public demo's grid.
 
-When the adapter is generic (no game classes, only `src/kit/` + the effect), also save it to
-`KIT/vfx/adapters/<id>/` in the same layout as `waterfog`, so the next playable gets it for free.
+Then into the playable, per ADAPTER.md: `kit.mjs copy` of `vfx/adapters/<id>/src` → `src` and
+`/dev` → `dev`, one import in `dev/vfx/registry.ts`, `<Name>C.init()` in the game next to the other
+map effects. Editor not installed in this playable → stop and offer `/kit-install-editor` first.
 
 Never place the effect by writing coordinates into `placements.json` — the user places it with
-V → Place → "+ Place it". Event effects: wire a gameplay trigger only if the user named one.
+V → VFX → its tile → "+ Place". Event effects: wire a gameplay trigger only if the user named one.
 
 ## 4. Report
 
-Files in the kit, files in the playable, how to see it (lab: `npm run lab` in KIT → picker;
-playable: V → Place), what is unverified; the size cost is unknown until an export. Offer in one line
-to commit and push the kit.
+Files in the kit, files in the playable, how to see it (lab: `npm run lab` in KIT; demo: `npm run demo`
+in KIT, or the public demo after the push; playable: V → VFX → its tile), what is unverified; the
+size cost is unknown until an export. Offer in one line to commit and push the kit.

@@ -7,7 +7,9 @@
  * reach it: none of it ships, and nothing in it can put an effect on a map.
  */
 
-const DEFAULTS = import.meta.glob("../../src/resources/editor/defaults/*.json", { eager: true }) as Record<string, { default: unknown }>;
+// Root-relative: a playable's Vite root is `src/`, so this is `src/resources/editor/defaults/` wherever
+// this file itself sits.
+const DEFAULTS = import.meta.glob("/resources/editor/defaults/*.json", { eager: true }) as Record<string, { default: unknown }>;
 
 export const DEFAULTS_ROOT = "src/resources/editor/defaults";
 

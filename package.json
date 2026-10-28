@@ -3,7 +3,9 @@
     "private": true,
     "description": "Editor, VFX lab, path editor, skills and rules for building 3D playables with Claude Code",
     "scripts": {
-        "setup": "npm --prefix vfx-lab install && npm --prefix path-editor install && ./scripts/link.sh",
+        "setup": "npm --prefix vfx-lab install && npm --prefix path-editor install && npm --prefix demo install && ./scripts/link.sh",
+        "demo": "npm --prefix demo start",
+        "demo:build": "npm --prefix demo run build",
         "lab": "npm --prefix vfx-lab start",
         "lab:typecheck": "npm --prefix vfx-lab run typecheck",
         "path-editor:build": "npm --prefix path-editor run build",

@@ -1,0 +1,517 @@
+/*
+ * The editor's frame. Same warm-dark palette and orange accent as vfx-lab's panel (panel.css), so a
+ * lab control reads the same in both. Everything is scoped under .kit-shell.
+ */
+
+.kit-shell {
+    --kit-bg: #120f0e;
+    --kit-surface: #1b1715;
+    --kit-raised: #241f1c;
+    --kit-line: rgba(255, 255, 255, 0.08);
+    --kit-text: #ece5df;
+    --kit-muted: #9a8f88;
+    --kit-accent: #ff7a2f;
+    --kit-accent-dim: rgba(255, 122, 47, 0.18);
+    --kit-ok: #6fd39a;
+    --kit-error: #ff6b6b;
+    --kit-dock-width: 440px;
+
+    display: flex;
+    flex-direction: column;
+    background: var(--kit-bg);
+    color: var(--kit-text);
+    font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.kit-shell *,
+.kit-shell *::before,
+.kit-shell *::after {
+    box-sizing: inherit;
+}
+
+.kit-shell[hidden] {
+    display: none !important;
+}
+
+/* ---- Docked / popped out --------------------------------------------------------------------- */
+
+.kit-shell.kit-docked {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--kit-dock-width);
+    max-width: 80vw;
+    z-index: 10000;
+    border-left: 1px solid var(--kit-line);
+    box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
+}
+
+.kit-shell:not(.kit-docked) {
+    position: fixed;
+    inset: 0;
+}
+
+.kit-dock-handle {
+    position: absolute;
+    left: -4px;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: ew-resize;
+    z-index: 2;
+}
+
+.kit-shell:not(.kit-docked) .kit-dock-handle {
+    display: none;
+}
+
+/* ---- Menu bar -------------------------------------------------------------------------------- */
+
+.kit-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 48px;
+    padding: 0 14px;
+    background: var(--kit-surface);
+    border-bottom: 1px solid var(--kit-line);
+    flex: none;
+}
+
+.kit-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 650;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 30%;
+}
+
+.kit-logo {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #ffb35c, var(--kit-accent));
+    box-shadow: 0 0 12px rgba(255, 122, 47, 0.6);
+    flex: none;
+}
+
+.kit-nav {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.kit-nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--kit-muted);
+    font: inherit;
+    font-weight: 550;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.kit-nav-item:hover {
+    color: var(--kit-text);
+    background: var(--kit-raised);
+}
+
+.kit-nav-item.kit-active {
+    color: var(--kit-text);
+    background: var(--kit-accent-dim);
+    box-shadow: inset 0 -2px 0 var(--kit-accent);
+}
+
+.kit-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--kit-raised);
+    color: var(--kit-text);
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+}
+
+.kit-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kit-chip {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--kit-accent-dim);
+    color: #ffb88f;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: help;
+}
+
+/* ---- Buttons --------------------------------------------------------------------------------- */
+
+.kit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid var(--kit-line);
+    border-radius: 8px;
+    background: var(--kit-raised);
+    color: var(--kit-text);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.kit-btn:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.kit-btn.kit-primary {
+    background: var(--kit-accent);
+    border-color: var(--kit-accent);
+    color: #1a0e06;
+}
+
+.kit-btn.kit-primary:hover {
+    filter: brightness(1.08);
+}
+
+.kit-btn.kit-ghost {
+    background: transparent;
+}
+
+.kit-btn.kit-danger:hover {
+    border-color: var(--kit-error);
+    color: var(--kit-error);
+}
+
+.kit-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+/* ---- Content --------------------------------------------------------------------------------- */
+
+.kit-content {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.kit-section {
+    padding: 18px;
+}
+
+.kit-section[hidden] {
+    display: none;
+}
+
+.kit-section h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.kit-lead {
+    margin: 0 0 16px;
+    color: var(--kit-muted);
+}
+
+.kit-group-title {
+    margin: 22px 0 10px;
+    color: var(--kit-muted);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.kit-save-note {
+    color: #ffb88f;
+    font-size: 11px;
+}
+
+.kit-status {
+    flex: none;
+    padding: 7px 14px;
+    border-top: 1px solid var(--kit-line);
+    background: var(--kit-surface);
+    color: var(--kit-muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kit-status[data-kind="ok"] {
+    color: var(--kit-ok);
+}
+
+.kit-status[data-kind="error"] {
+    color: var(--kit-error);
+}
+
+/* ---- VFX grid -------------------------------------------------------------------------------- */
+
+.kit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.kit-docked .kit-grid {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.kit-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border: 1px solid var(--kit-line);
+    border-radius: 12px;
+    background: var(--kit-surface);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.kit-tile:hover {
+    transform: scale(1.03);
+    border-color: rgba(255, 122, 47, 0.55);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+    z-index: 1;
+}
+
+.kit-tile canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #15110f;
+}
+
+.kit-tile-body {
+    padding: 10px 12px 12px;
+}
+
+.kit-tile-name {
+    font-weight: 650;
+}
+
+.kit-tile-hint {
+    margin-top: 2px;
+    color: var(--kit-muted);
+    font-size: 12px;
+}
+
+.kit-tile-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(18, 15, 14, 0.8);
+    color: var(--kit-text);
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.kit-tile-count.kit-placed {
+    background: var(--kit-accent);
+    color: #1a0e06;
+}
+
+.kit-oneshots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ---- VFX detail ------------------------------------------------------------------------------ */
+
+.kit-detail-head {
+    position: sticky;
+    top: -18px;
+    z-index: 3;
+    margin: -18px -18px 16px;
+    padding: 14px 18px;
+    background: rgba(18, 15, 14, 0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--kit-line);
+}
+
+.kit-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.kit-detail-title h2 {
+    margin: 0;
+}
+
+.kit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.kit-row + .kit-row {
+    margin-top: 8px;
+}
+
+.kit-spacer {
+    flex: 1;
+}
+
+.kit-points {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.kit-point {
+    height: 26px;
+    padding: 0 10px;
+    border: 1px solid var(--kit-line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--kit-muted);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.kit-point.kit-active {
+    border-color: var(--kit-accent);
+    color: var(--kit-text);
+    background: var(--kit-accent-dim);
+}
+
+.kit-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 40px 20px;
+    border: 1px dashed var(--kit-line);
+    border-radius: 14px;
+    color: var(--kit-muted);
+    text-align: center;
+}
+
+.kit-empty canvas {
+    width: min(420px, 100%);
+    aspect-ratio: 16 / 10;
+    border-radius: 10px;
+}
+
+/* The lab's controls, laid out in columns when the window is wide enough. */
+.kit-shell .vl-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    background: transparent;
+    backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+    font-size: 12px;
+}
+
+.kit-shell .vl-head {
+    display: none;
+}
+
+.kit-shell .vl-body {
+    overflow: visible;
+    column-width: 340px;
+    column-gap: 14px;
+}
+
+.kit-shell .vl-folder {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    border: 1px solid var(--kit-line);
+    border-radius: 10px;
+    background: var(--kit-surface);
+    overflow: hidden;
+}
+
+/* ---- The path editor's own panel, as the Scene section ---------------------------------------- */
+
+.kit-shell .tpe-panel {
+    position: static !important;
+    width: auto !important;
+    max-height: none !important;
+    border: 1px solid var(--kit-line);
+    border-radius: 12px;
+    background: var(--kit-surface);
+    box-shadow: none;
+    font-size: 12px;
+}
+
+.kit-shell .tpe-panel > header {
+    cursor: default;
+}
+
+.kit-keys {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 6px 16px;
+    margin: 0 0 16px;
+    color: var(--kit-muted);
+    font-size: 12px;
+}
+
+.kit-keys kbd {
+    display: inline-block;
+    min-width: 20px;
+    margin-right: 6px;
+    padding: 1px 6px;
+    border: 1px solid var(--kit-line);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: var(--kit-raised);
+    color: var(--kit-text);
+    font: 11px ui-monospace, Menlo, monospace;
+    text-align: center;
+}
+
+/* Popped out: the window's own page. */
+html.kit-popout,
+html.kit-popout body {
+    margin: 0;
+    height: 100%;
+    background: #120f0e;
+}

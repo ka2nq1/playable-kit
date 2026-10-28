@@ -1,5 +1,8 @@
 # Installing the editor into a playable
 
+See it first: the [live demo](https://ka2nq1.github.io/playable-kit/) is a playable built from these exact
+files (`demo/` in this repo) — press V.
+
 For a 3D playable on `@hitplay/playable_template` (three.js). 2D playables are out of scope.
 `/kit-install-editor` follows this file step by step; when a step does not fit the project it stops
 and offers the options listed under that step.
@@ -14,7 +17,8 @@ and offers the options listed under that step.
 | `src/vendor/three-path-editor/` | kit (tracked) | only if `src/kit/routes.ts` is imported | path editor runtime |
 | `templateLibs/kitEditorPlugin.mjs` | kit (tracked) | no | dev-server injection + save endpoint |
 | `dev/editor.config.ts` | playable | no | this game's half of the editor |
-| `dev/vfx/registry.ts`, `dev/vfx/panels/` | playable | no | its map effects' tabs |
+| `dev/vfx/registry.ts` | playable | no | the list of map effects (one tile each) |
+| `dev/vfx/entries/`, `dev/vfx/panels/`, `src/controllers/VFX/` | kit adapters (tracked) | controllers yes | per effect — `vfx/ADAPTER.md` |
 | `src/resources/editor/placements.json` | playable | yes | every marker and route |
 | `src/resources/editor/defaults/` | playable | no | starting settings for new effect instances |
 | `.kit.json` | playable | no | what was copied from where (see `scripts/kit.mjs`) |
@@ -36,7 +40,11 @@ Never overwrites. A file reported as *skipped* already exists with other content
 - the project's own file at the same path → rename one of them, or keep the project's and mark it
   `diverge` with the reason.
 
-### 2. tsconfig
+### 2. tsconfig and Vite root
+
+The Vite root must be `src/` (the template's `rootDev`): `dev/kit/defaults.ts` globs
+`/resources/editor/defaults/*.json` root-relative.
+
 
 `dev/` must be type-checked with the game: `"include": ["src/**/*", "dev/**/*"]`.
 If the project's tsconfig sets `rootDir: "src"`, drop it or widen it to `.`.
@@ -111,16 +119,20 @@ Offer this as a separate step; never rip out a working editor silently.
 
 ## Using it
 
-**V** toggles it. Mouse: left drag orbits, right drag pans, wheel zooms (pivot under the pointer).
-The game is paused while it is open; effects keep animating off a wall clock.
+**V** toggles it. It opens in its own browser window (the first time the browser may ask to allow
+pop-ups); **⇲ Dock** puts it beside the game instead, as a column you can drag wider. In the game
+view: left drag orbits, right drag pans, wheel zooms. The game is paused while the editor is open;
+effects keep animating off a wall clock. Keep the editor window beside the game, not over it: a
+fully covered window is throttled by the browser.
 
-- **Window / Dock** (top row) moves the panel into its own browser window and back. The window is
-  reopened by the next V press and survives the game page reloading. Keep it beside the game, not
-  over it: a fully covered window is throttled by the browser.
-- **Paths** — every marker and route. G gizmos, R rotate (yaw), Delete, Ctrl+Z.
-- **Place** — add a map effect (a point carrying its settings) or a one-shot marker.
-- **Tune** — `tunables` from the config: live JSON objects with a Save each.
-- one tab per map effect; **Save point** writes its settings into its own marker.
+The menu bar:
+- **Scene** — every marker and route (three-path-editor). G gizmos, R rotate (yaw), Delete, Ctrl+Z; Save
+  writes the placements file.
+- **VFX** — a grid of every registered effect with a live preview (hover plays it) and how many are
+  placed. A click opens the effect: its points as chips, Place / Duplicate / Delete / Fire, **Save
+  point** (writes the settings into that marker), Save as default, Copy JSON, and all its controls.
+- **Tune** — `tunables`: live JSON objects with a Save each.
+- the project's own sections (`tabs`).
 
 A save no longer reloads the page (the plugin swallows its own write), so the editor, camera and
 round survive it.

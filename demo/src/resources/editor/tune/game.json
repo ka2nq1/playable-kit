@@ -1,0 +1,8 @@
+{
+    "heroSpeed": 1.3,
+    "cameraSway": 0.45,
+    "cameraHeight": 5.2,
+    "fireLight": 2.2,
+    "fireFlicker": 0.18,
+    "fogColor": "#1a1c2b"
+}

@@ -4,9 +4,10 @@
 
 ## Open
 
-- [2026-10-28] playable-kit · vfx — у `vfx/adapters/` поки тільки еталонний `waterfog`. Решта адаптерів (sky, water/ice/lava surface, splash, ripples, fire, embers, smoke, heat, fireflies, snowstorm, bubbles, cracks, lava impact/geyser, sun glare, whale breach) лежить у Basketball Stars 1v1 (`src/controllers/VFX/*C.ts`, `dev/panels/*`) і прив'язана до його `ThreeC`/`TimeC`/`MapC`. Переносити в кіт по одному, коли ефект знадобиться в новому плеєблі.
+- [2026-10-28] playable-kit · vfx — адаптери всіх 16 ефектів лаби генеровані (`defineMapVfx` + авто-контроли). Діапазони слайдерів вгадані — для ефектів, які часто тюнять, додати `schema` або рукописну панель. Basketball-специфічні (sun glare, lava geyser, whale breach, амбієнт-планувальники splash/ripples/impact) не перенесені.
+- [2026-10-28] playable-kit · demo — демо і новий UI едітора ще не перевірені в браузері: кадрування превью-плиток, sky у нічній сцені, вигляд авто-панелей.
 - [2026-10-28] playable-kit · editor — Basketball і Sniper Choice-Driven ще на своїх старих едіторах; перевести їх на кіт (INTEGRATION.md, крок 7), коли буде час, — це і перевірка кіту.
-- [2026-10-28] playable-kit · editor — вікно-попап і пригнічення перезавантаження після Save ще не перевірені в реальному плеєблі.
+- [2026-10-28] playable-kit · editor — пригнічення перезавантаження після Save не перевірене в реальному плеєблі.
 
 ## Done
 

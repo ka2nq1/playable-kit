@@ -1,5 +1,7 @@
 # playable-kit
 
+**[▶ Live demo](https://ka2nq1.github.io/playable-kit/)** — a playable built from this repo; press **V** for the editor.
+
 Усе для створення 3D-плеєблів на `@hitplay/playable_template` в одному репозиторії: едітор, лаба
 ефектів, path-editor, скіли й правила Claude Code. Нічого не ставиться як пакет: файли копіюються в плеєбл, а `.kit.json` у плеєблі пам'ятає, звідки
 кожен файл і яким він був у момент копіювання. Тому правки ходять в обидва боки.
@@ -8,7 +10,8 @@
 
 | Шлях | Що це |
 | --- | --- |
-| `editor/` | едітор (V): шляхи, маркери, розміщення й налаштування VFX, Tune для JSON-конфігів, окреме вікно. Як ставити — [editor/INTEGRATION.md](editor/INTEGRATION.md) |
+| `demo/` | живе демо: плеєбл, зібраний прямо з файлів кіту (`npm run demo`; публікується на GitHub Pages з кожним пушем) |
+| `editor/` | едітор (V): окреме вікно з меню — Scene (маршрути, маркери), VFX (сітка ефектів з превью), Tune. Як ставити — [editor/INTEGRATION.md](editor/INTEGRATION.md) |
 | `vfx-lab/` | лаба ефектів: пишемо й налаштовуємо ефект, `vfx-lab/src/vfx/` копіюється в плеєбл (`npm run lab`) |
 | `path-editor/` | вихідний код three-path-editor: тести, демо, збірка (`npm run vendor` оновлює копію в едіторі) |
 | `vfx/` | як ефект із лаби стає ефектом плеєбла — [vfx/ADAPTER.md](vfx/ADAPTER.md), еталонний адаптер `waterfog`, стартові пресети `defaults/` |
@@ -26,7 +29,7 @@ cd ~/projects/playable-kit && npm run setup     # залежності лаби 
 ```
 
 Оновити все разом: `git pull`. Команди з кореня: `npm run lab` (лаба на :5188),
-`npm run path-editor:test`, `npm run path-editor:demo`, `npm run vendor`.
+`npm run demo` (демо-плеєбл), `npm run path-editor:test`, `npm run vendor`.
 
 ## Скіли
 

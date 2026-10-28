@@ -1,0 +1,192 @@
+:root {
+    --hud-accent: #ff7a2f;
+    --hud-text: #f4ece4;
+    --hud-muted: #b3a69c;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #14161f;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#game {
+    position: fixed;
+    inset: 0;
+}
+
+#game canvas {
+    display: block;
+}
+
+.hud {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    color: var(--hud-text);
+}
+
+.hud-title {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.hud-name {
+    font-size: clamp(26px, 4.4vw, 44px);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.hud-tagline {
+    margin-top: 4px;
+    color: var(--hud-muted);
+    font-size: 15px;
+}
+
+.hud-toast {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(20, 16, 14, 0.7);
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.hud-toast.hud-toast-on {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.hud-cta {
+    position: absolute;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 44px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #ffa25a, var(--hud-accent));
+    color: #2a1306;
+    font: 800 20px system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    box-shadow: 0 10px 30px rgba(255, 122, 47, 0.45);
+    pointer-events: auto;
+    cursor: pointer;
+    animation: hud-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes hud-pulse {
+    0%,
+    100% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.06);
+    }
+}
+
+.hud-editor {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    width: 300px;
+    padding: 16px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(18, 15, 14, 0.82);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+    font-size: 13px;
+    line-height: 1.45;
+    pointer-events: auto;
+}
+
+.hud-editor-key {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+}
+
+.hud-editor kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom-width: 3px;
+    border-radius: 9px;
+    background: #2a231f;
+    color: #fff;
+    font: 700 18px ui-monospace, Menlo, monospace;
+    flex: none;
+    animation: hud-key 2.4s ease-in-out infinite;
+}
+
+@keyframes hud-key {
+    0%,
+    80%,
+    100% {
+        transform: translateY(0);
+        border-bottom-width: 3px;
+    }
+    88% {
+        transform: translateY(2px);
+        border-bottom-width: 1px;
+    }
+}
+
+.hud-editor p {
+    margin: 10px 0 0;
+    color: var(--hud-muted);
+}
+
+.hud-editor ul {
+    margin: 10px 0 0;
+    padding-left: 18px;
+}
+
+.hud-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.hud-open {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--hud-accent);
+    color: #2a1306;
+    font: 700 13px system-ui, sans-serif;
+    cursor: pointer;
+}
+
+.hud-editor a {
+    color: #ffb88f;
+    text-decoration: none;
+}
+
+.hud-editor .hud-small {
+    font-size: 11px;
+}
+
+@media (max-width: 720px) {
+    .hud-editor {
+        display: none;
+    }
+}

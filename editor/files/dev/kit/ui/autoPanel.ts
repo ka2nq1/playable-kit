@@ -82,6 +82,24 @@ export function buildAutoPanel(panel: ControlPanel, title: string, target: Recor
                     object[key] = v;
                     changed(path);
                 });
+            } else if (isNumberArray(value) && value.length === 2 && value[0] <= value[1]) {
+                // The lab's configs are mostly `[min, max]` ranges: one control that keeps them ordered.
+                const pair = value;
+                const guess = guessRange(Math.max(Math.abs(pair[0]), Math.abs(pair[1])) * (pair[0] < 0 ? -1 : 1));
+                const range = { min: field.min ?? Math.min(guess.min, pair[0]), max: field.max ?? guess.max, step: field.step ?? guess.step };
+                folder.rangeRows(label, range, () => [pair[0], pair[1]], (v) => {
+                    pair[0] = v[0];
+                    pair[1] = v[1];
+                    changed(path);
+                });
+            } else if (Array.isArray(value) && value.length > 0 && value.every((c) => typeof c === "string" && HEX.test(c))) {
+                const colors = value as string[];
+                colors.forEach((_, i) =>
+                    folder.color(`${label} ${i + 1}`, () => colors[i], (v) => {
+                        colors[i] = v;
+                        changed(path);
+                    }),
+                );
             } else if (isNumberArray(value)) {
                 const array = value;
                 array.forEach((n, i) => {
