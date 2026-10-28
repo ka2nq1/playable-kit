@@ -437,7 +437,7 @@
     border-radius: 10px;
 }
 
-/* The lab's controls, laid out in columns when the window is wide enough. */
+/* The lab's controls, dealt into fixed columns by ui/columns.ts when the window is wide enough. */
 .kit-shell .vl-panel {
     position: static;
     width: auto;
@@ -455,12 +455,20 @@
 
 .kit-shell .vl-body {
     overflow: visible;
-    column-width: 340px;
-    column-gap: 14px;
+}
+
+.kit-shell [data-kit-columns][data-count] {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.kit-shell .kit-col {
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 .kit-shell .vl-folder {
-    break-inside: avoid;
     margin-bottom: 12px;
     border: 1px solid var(--kit-line);
     border-radius: 10px;

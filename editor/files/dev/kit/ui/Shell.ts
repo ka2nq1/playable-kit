@@ -1,4 +1,5 @@
 import "./shell.css";
+import { relayout } from "./columns";
 
 /**
  * The editor's frame: a menu bar of sections on top, the active section below, a status line at the
@@ -139,6 +140,7 @@ export class Shell {
         this.current = section;
         writeStorage(SECTION_KEY, section.id);
         section.onShow?.();
+        relayout(section.body);
     }
 
     /** The section the editor was last left on. */
@@ -159,11 +161,13 @@ export class Shell {
 
     setVisible(visible: boolean): void {
         this.root.hidden = !visible;
+        if (visible) relayout(this.root);
     }
 
     /** Docked: a column on the right edge of the game. Popped out: the whole window. */
     setDocked(docked: boolean): void {
         this.root.classList.toggle("kit-docked", docked);
+        relayout(this.root);
     }
 
     private wireHandle(handle: HTMLElement): void {

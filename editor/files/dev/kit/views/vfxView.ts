@@ -4,6 +4,7 @@ import type { OneShotEffects } from "../config";
 import type { VfxDevEntry } from "../registry";
 import type { VfxPreviewer } from "../preview";
 import { ControlPanel } from "../ui/ControlPanel";
+import { columnize } from "../ui/columns";
 
 /**
  * The VFX section: a grid of every effect the playable knows, and one effect's editor.
@@ -208,6 +209,7 @@ export class VfxView {
             moveTo: (position) => this.host.moveTo(instance, position),
         });
         root.appendChild(panel.dom);
+        columnize(panel.dom.querySelector<HTMLElement>(".vl-body")!);
         this.panel = panel;
     }
 }

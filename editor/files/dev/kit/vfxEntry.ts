@@ -3,7 +3,7 @@ import { markerSpot } from "../../src/kit/anchor";
 import type { MapVfxController, MapVfxEffect, MapVfxInstance } from "../../src/kit/defineMapVfx";
 import { entry, type PreviewSpec, type VfxDevEntry, type VfxPanelContext } from "./registry";
 import type { ControlPanel } from "./ui/ControlPanel";
-import { buildAutoPanel, type AutoSchema } from "./ui/autoPanel";
+import { buildAutoPanel, type AutoSchema, type FieldSchema } from "./ui/autoPanel";
 import { buildAnchorFolder } from "./panels/anchorFolder";
 import { defaultsFor } from "./defaults";
 
@@ -33,9 +33,58 @@ export interface VfxEntryOptions<V extends MapVfxEffect> {
     preview?: Omit<PreviewSpec, "create" | "event">;
 }
 
+/** Set by vfx-lab's `oneOf` while a config is normalized — see `src/vfx/core/config.ts`. */
+const ENUM_RECORDER = "__vfxConfigEnums";
+
+/**
+ * Which string fields of an effect's config are enums, and their options.
+ *
+ * A value alone cannot say whether `"infinite"` is a free string or one of three modes, so the
+ * effect is built once with the recorder set and every `oneOf` reports its options. Normalizers
+ * build the config in property order, so a depth-first walk meets each enum field in the order its
+ * `oneOf` ran; matching by key and by the value being one of the options settles the rest.
+ */
+function discoverEnums(create: () => MapVfxEffect): AutoSchema {
+    const calls: Array<{ key: string; options: readonly string[] }> = [];
+    const global = globalThis as Record<string, unknown>;
+    global[ENUM_RECORDER] = (key: string, options: readonly string[]) => calls.push({ key, options });
+    let vfx: MapVfxEffect;
+    try {
+        vfx = create();
+    } finally {
+        delete global[ENUM_RECORDER];
+    }
+
+    const schema: Record<string, FieldSchema> = {};
+    const walk = (object: Record<string, unknown>, prefix: string) => {
+        for (const [key, value] of Object.entries(object)) {
+            const path = prefix ? `${prefix}.${key}` : key;
+            if (typeof value === "string") {
+                const i = calls.findIndex((c) => c.key === key && c.options.includes(value));
+                if (i < 0) continue;
+                schema[path] = { options: calls[i].options };
+                calls.splice(i, 1);
+            } else if (value && typeof value === "object" && !Array.isArray(value)) {
+                walk(value as Record<string, unknown>, path);
+            }
+        }
+    };
+    walk(vfx.config as Record<string, unknown>, "");
+    vfx.dispose();
+    return schema;
+}
+
+/** Field by field, later wins — so a hand-written label keeps the discovered options. */
+function mergeSchemas(...schemas: Array<AutoSchema | undefined>): AutoSchema {
+    const merged: Record<string, FieldSchema> = {};
+    for (const schema of schemas) for (const [path, field] of Object.entries(schema ?? {})) merged[path] = { ...merged[path], ...field };
+    return merged;
+}
+
 export function vfxEntry<V extends MapVfxEffect>(controller: MapVfxController<V>, options: VfxEntryOptions<V>): VfxDevEntry {
     const { definition } = controller;
     const apply = (vfx: V) => vfx.applyConfig?.();
+    let enums: AutoSchema | null = null;
 
     return entry<MapVfxInstance<V>>({
         id: controller.ID,
@@ -85,8 +134,9 @@ export function vfxEntry<V extends MapVfxEffect>(controller: MapVfxController<V>
                 options.controls(panel, instance, ctx);
                 return;
             }
+            enums ??= discoverEnums(() => definition.create(structuredClone(options.defaults ?? {})));
             buildAutoPanel(panel, "Settings", vfx.config as Record<string, unknown>, {
-                schema: { enabled: { hidden: true }, ...options.schema },
+                schema: mergeSchemas({ enabled: { hidden: true } }, enums, options.schema),
                 onChange: () => apply(vfx),
             });
         },

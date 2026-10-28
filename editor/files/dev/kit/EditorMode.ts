@@ -21,6 +21,7 @@ import { MAP_VFX_CONFIG_KEY, MAP_VFX_KEY, readMarkers, setLiveFile } from "../..
 import type { MapVfxInstanceBase } from "../../src/kit/MapVfxInstances";
 import { ControlPanel } from "./ui/ControlPanel";
 import { Shell } from "./ui/Shell";
+import { columnize } from "./ui/columns";
 import type { EditorConfig, EditorContext } from "./config";
 import type { VfxDevEntry } from "./registry";
 import { defaultsFor, defaultsPath } from "./defaults";
@@ -246,6 +247,7 @@ export class EditorMode {
     private panel(label: string, build: (panel: ControlPanel) => void): ControlPanel {
         const panel = new ControlPanel(label);
         build(panel);
+        columnize(panel.dom.querySelector<HTMLElement>(".vl-body")!);
         this.panels.push(panel);
         return panel;
     }

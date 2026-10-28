@@ -133,7 +133,17 @@ export function keyframes(raw: Raw, key: string, def: Keyframe[], path: string, 
     return (v as Keyframe[]).map((k) => [k[0], k[1]] as Keyframe);
 }
 
+/**
+ * Editors that build controls from a normalized config (playable-kit's) cannot tell an enum from a
+ * free string by its value. While such an editor normalizes a config it sets this global, and every
+ * `oneOf` reports the options it allows, in call order. A global rather than an import, so nothing
+ * here depends on the editor; outside that moment it is undefined and costs one property read.
+ */
+const ENUM_RECORDER = "__vfxConfigEnums";
+type EnumRecorder = (key: string, options: readonly string[]) => void;
+
 export function oneOf<T extends string>(raw: Raw, key: string, options: readonly T[], def: T, path: string, issues: ConfigIssues): T {
+    (globalThis as { [ENUM_RECORDER]?: EnumRecorder })[ENUM_RECORDER]?.(key, options);
     const v = raw?.[key];
     if (v === undefined) return def;
     if (typeof v !== "string" || !options.includes(v as T)) {
