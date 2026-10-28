@@ -1,18 +1,21 @@
 ---
 name: kit-pull
-description: Update the current playable's copied kit/vfx-lab files to the latest playable-kit and vfx-lab, keeping local and deliberate differences. Use when the user says /kit-pull, "онови кіт", or before starting new work in an older playable.
+description: Update the current playable's copied kit files (editor, vfx-lab effects, vendored path editor) to the latest playable-kit, keeping local and deliberate differences. Use when the user says /kit-pull, "онови кіт", or before starting new work in an older playable.
 ---
 
-# Kit / vfx-lab → playable
+# playable-kit → playable
 
-1. `git -C ~/projects/playable-kit pull --ff-only` and the same for `~/projects/vfx-lab` (skip
-   silently if offline or not fast-forward; say so).
-2. `node ~/projects/playable-kit/scripts/kit.mjs pull <playable> --dry-run` → show what would
-   update; then run it for real. New kit files (added since install) arrive too.
+The kit (`~/projects/playable-kit`) is the single source: editor, `vfx-lab/` effects and the path
+editor all come from it.
+
+1. `git -C ~/projects/playable-kit pull --ff-only` (if offline or not fast-forward, say so and go on
+   with the local kit).
+2. `node ~/projects/playable-kit/scripts/kit.mjs pull <playable> --dry-run` → show what would update;
+   then run it for real. Kit files added since the install arrive too.
 3. `conflict` files: show both sides' change briefly, propose a merge, ask per file (keep mine /
-   take kit / merged version). After writing the merge: `kit.mjs resolve <playable> <file>`.
-4. Read `~/projects/playable-kit/CHANGELOG.md` entries newer than the playable's recorded kit commit
-   (`.kit.json` → `sources.kit.commit`) for steps that need project changes (a new required config
-   field, a renamed hook) and apply them to `dev/editor.config.ts` / the kit host.
+   take kit / merged). After writing the merge: `kit.mjs resolve <playable> <file>`.
+4. Read `CHANGELOG.md` entries newer than the playable's kit commit (`.kit.json` → `kit.commit`) for
+   steps that need project changes (a new config field, a renamed hook) and apply them to
+   `dev/editor.config.ts` / the kit host call.
 
-Finish with: updated files, merged conflicts, project-side changes made. No builds unless asked.
+Finish with: updated files, merged conflicts, project-side changes. No builds unless asked.

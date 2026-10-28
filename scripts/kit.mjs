@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 /**
- * Keeps a playable's copied files in step with their sources — playable-kit and vfx-lab.
+ * Keeps a playable's copied files in step with playable-kit — the editor, the vfx-lab effects and
+ * the path editor all live in this one repository.
  *
  * Nothing is installed as a package: files are copied, and `.kit.json` in the playable remembers,
- * for every copied file, where it came from and the hash it had when copied (the *base*). That makes
- * every file a three-way question — base, the playable's copy (local), the source today (upstream):
+ * for every copied file, its kit path and the hash it had when copied (the *base*). That makes every
+ * file a three-way question — base, the playable's copy (local), the kit today (upstream):
  *
  *   clean      local = base = upstream
  *   local      only the playable changed it        → candidate for `push`
- *   upstream   only the source changed it          → `pull` applies it
+ *   upstream   only the kit changed it             → `pull` applies it
  *   conflict   both changed it, differently        → merge by hand, then `resolve`
  *   divergent  marked as a deliberate local difference; never pulled, never pushed
  *
  *   node scripts/kit.mjs install-editor <playable> [--dry-run]
- *   node scripts/kit.mjs copy <playable> <kit|vfx-lab>:<from> <to> [--dry-run]
+ *   node scripts/kit.mjs copy <playable> <kit-path> <to> [--dry-run]     e.g. vfx-lab/src/vfx/effects/waterfog src/vfx/effects/waterfog
  *   node scripts/kit.mjs status <playable> [--all]
  *   node scripts/kit.mjs pull <playable> [file...] [--dry-run]
  *   node scripts/kit.mjs push <playable> <file...>
@@ -32,10 +33,6 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const KIT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const SOURCES = {
-    kit: KIT_ROOT,
-    "vfx-lab": process.env.VFX_LAB ?? resolve(KIT_ROOT, "../vfx-lab"),
-};
 const MANIFEST = ".kit.json";
 const EDITOR_FILES = "editor/files";
 const EDITOR_TEMPLATES = "editor/templates";
@@ -69,7 +66,7 @@ function commitOf(root) {
 
 function loadManifest(playable) {
     const file = join(playable, MANIFEST);
-    if (!existsSync(file)) return { sources: {}, files: {} };
+    if (!existsSync(file)) return { kit: {}, files: {} };
     return JSON.parse(readFileSync(file, "utf8"));
 }
 
@@ -85,12 +82,12 @@ function copy(from, to) {
     copyFileSync(from, to);
 }
 
-function stamp(manifest, source) {
-    manifest.sources[source] = { path: SOURCES[source], commit: commitOf(SOURCES[source]) };
+function stamp(manifest) {
+    manifest.kit = { path: KIT_ROOT, commit: commitOf(KIT_ROOT) };
 }
 
 function upstreamPath(entry) {
-    return join(SOURCES[entry.source], entry.from);
+    return join(KIT_ROOT, entry.from);
 }
 
 function stateOf(playable, file, entry) {
@@ -105,9 +102,9 @@ function stateOf(playable, file, entry) {
     return "conflict";
 }
 
-/** Copies one tracked file from a source into the playable, refusing to clobber anything. */
-function track(playable, manifest, source, from, to, report) {
-    const src = join(SOURCES[source], from);
+/** Copies one tracked file from the kit into the playable, refusing to clobber anything. */
+function track(playable, manifest, from, to, report) {
+    const src = join(KIT_ROOT, from);
     const dest = join(playable, to);
     const existing = manifest.files[to];
     const srcHash = hashOf(src);
@@ -115,11 +112,11 @@ function track(playable, manifest, source, from, to, report) {
 
     if (destHash !== null && destHash !== srcHash && !(existing && destHash === existing.hash)) {
         report.skipped.push(`${to} (exists with different content — not overwritten)`);
-        if (!existing) manifest.files[to] = { source, from, hash: destHash, note: "pre-existing, differs from source" };
+        if (!existing) manifest.files[to] = { from, hash: destHash, note: "pre-existing, differs from the kit" };
         return;
     }
     if (destHash !== srcHash) copy(src, dest);
-    manifest.files[to] = { ...(existing ?? {}), source, from, hash: srcHash };
+    manifest.files[to] = { ...(existing ?? {}), from, hash: srcHash };
     report.copied.push(to);
 }
 
@@ -129,7 +126,7 @@ function cmdInstallEditor(playable) {
     const root = join(KIT_ROOT, EDITOR_FILES);
     for (const file of walk(root)) {
         const rel = posix(relative(root, file));
-        track(playable, manifest, "kit", `${EDITOR_FILES}/${rel}`, rel, report);
+        track(playable, manifest, `${EDITOR_FILES}/${rel}`, rel, report);
     }
     // Templates are the playable's own from the first copy on: scaffolded once, never tracked.
     const templates = join(KIT_ROOT, EDITOR_TEMPLATES);
@@ -139,27 +136,27 @@ function cmdInstallEditor(playable) {
         copy(file, join(playable, rel));
         report.scaffolded.push(rel);
     }
-    stamp(manifest, "kit");
+    stamp(manifest);
     saveManifest(playable, manifest);
     print(report);
 }
 
-function cmdCopy(playable, spec, to) {
-    const [source, from] = spec.split(/:(.+)/);
-    if (!SOURCES[source] || !from || !to) throw new Error("usage: copy <playable> <kit|vfx-lab>:<from> <to>");
+function cmdCopy(playable, from, to) {
+    if (!from || !to) throw new Error("usage: copy <playable> <kit-path> <to>");
+    from = posix(from).replace(/^\.\//, "").replace(/\/$/, "");
     const manifest = loadManifest(playable);
     const report = { copied: [], skipped: [] };
-    const src = join(SOURCES[source], from);
-    if (!existsSync(src)) throw new Error(`no such file in ${source}: ${from}`);
+    const src = join(KIT_ROOT, from);
+    if (!existsSync(src)) throw new Error(`no such path in the kit: ${from}`);
     if (statSync(src).isDirectory()) {
         for (const file of walk(src)) {
             const rel = posix(relative(src, file));
-            track(playable, manifest, source, `${from.replace(/\/$/, "")}/${rel}`, `${to.replace(/\/$/, "")}/${rel}`, report);
+            track(playable, manifest, `${from}/${rel}`, `${to.replace(/\/$/, "")}/${rel}`, report);
         }
     } else {
-        track(playable, manifest, source, from, to, report);
+        track(playable, manifest, from, to, report);
     }
-    stamp(manifest, source);
+    stamp(manifest);
     saveManifest(playable, manifest);
     print(report);
 }
@@ -169,7 +166,7 @@ function cmdStatus(playable) {
     const groups = {};
     for (const [file, entry] of Object.entries(manifest.files)) {
         const state = stateOf(playable, file, entry);
-        (groups[state] ??= []).push(entry.divergent ? `${file} — ${entry.divergent}` : `${file}  [${entry.source}]`);
+        (groups[state] ??= []).push(entry.divergent ? `${file} — ${entry.divergent}` : `${file}  ← ${entry.from}`);
     }
     const order = ["conflict", "local", "upstream", "in-sync", "missing", "gone-upstream", "divergent", "clean"];
     for (const state of order) {
@@ -203,13 +200,13 @@ function cmdPull(playable, only) {
     }
     // A kit file the playable has never had: new in the kit since the install.
     const root = join(KIT_ROOT, EDITOR_FILES);
-    if (!only.length && Object.values(manifest.files).some((e) => e.source === "kit" && e.from.startsWith(EDITOR_FILES))) {
+    if (!only.length && Object.values(manifest.files).some((e) => e.from.startsWith(EDITOR_FILES))) {
         for (const file of walk(root)) {
             const rel = posix(relative(root, file));
-            if (!manifest.files[rel]) track(playable, manifest, "kit", `${EDITOR_FILES}/${rel}`, rel, report);
+            if (!manifest.files[rel]) track(playable, manifest, `${EDITOR_FILES}/${rel}`, rel, report);
         }
     }
-    for (const source of new Set(Object.values(manifest.files).map((e) => e.source))) stamp(manifest, source);
+    stamp(manifest);
     saveManifest(playable, manifest);
     print(report);
 }
@@ -224,7 +221,7 @@ function cmdPush(playable, files) {
         if (state !== "local") throw new Error(`${file} is ${state}; only a local-only change can be pushed`);
         copy(join(playable, file), upstreamPath(entry));
         entry.hash = hashOf(join(playable, file));
-        console.log(`pushed ${file} → ${entry.source}:${entry.from}`);
+        console.log(`pushed ${file} → ${entry.from}`);
     }
     saveManifest(playable, manifest);
 }

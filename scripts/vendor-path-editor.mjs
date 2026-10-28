@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Refreshes the kit's vendored three-path-editor from a built checkout of the package.
+ * Refreshes the editor's vendored copy of the path editor from `path-editor/` in this repo.
  *
- *   node scripts/vendor-path-editor.mjs [path-to-three-js-path-editor]   (default ../three-js-path-editor)
+ *   npm run vendor        (= build path-editor, then this script)
  *
  * Runtime files go to `editor/files/src/vendor/three-path-editor/dist/` (they may ship); the editor
  * bundle goes to `editor/files/dev/vendor/three-path-editor/` with its chunk imports rewritten to
- * the runtime copy, so game and editor share one `Path`. Build the package first (`npm run build`).
+ * the runtime copy, so game and editor share one `Path`.
  * Playables then pick the update up with `kit.mjs pull`.
  */
 
@@ -15,10 +15,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const KIT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const pkg = resolve(process.argv[2] ?? join(KIT_ROOT, "../three-js-path-editor"));
+const pkg = join(KIT_ROOT, "path-editor");
 const dist = join(pkg, "dist");
 if (!existsSync(join(dist, "editor.js"))) {
-    console.error(`no built dist in ${pkg} — run npm run build there first`);
+    console.error("path-editor/dist is missing — run `npm run vendor` from the kit root (it builds first)");
     process.exit(1);
 }
 

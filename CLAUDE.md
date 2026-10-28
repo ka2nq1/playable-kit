@@ -1,6 +1,17 @@
 # playable-kit — working on the kit itself
 
-The kit is copied into playables as files (no packages). Everything here is written for that.
+One repository for everything a playable takes from us, copied into playables as files (no packages):
+
+| Folder | What | Own rules |
+| --- | --- | --- |
+| `editor/` | the in-game editor, copied by `scripts/kit.mjs` | below |
+| `vfx-lab/` | effects workbench; `vfx-lab/src/vfx/` is what playables copy | `vfx-lab/CLAUDE.md` |
+| `path-editor/` | three-path-editor source (tests, demo, build) | `path-editor/CLAUDE.md` |
+| `vfx/` | adapters that make lab effects editor map effects | `vfx/ADAPTER.md` |
+| `skills/`, `agents/`, `rules/` | Claude Code side | — |
+
+Work inside `vfx-lab/` or `path-editor/` follows that folder's CLAUDE.md as well. Each has its own
+`package.json` and `node_modules` (`npm run setup` at the root installs both); there is no workspace.
 
 ## Invariants
 
@@ -12,8 +23,8 @@ The kit is copied into playables as files (no packages). Everything here is writ
   files. `routes.ts` is the only file allowed to import the vendored path-editor runtime.
 - `editor/files/dev/**` never ships; it may import `src/` (relative), never the reverse.
 - `editor/templates/**` are scaffolded once and then belong to the playable — never tracked.
-- Vendored three-path-editor is updated only with `scripts/vendor-path-editor.mjs`, never edited.
-  Package problems go to github.com/ka2nq1/three-js-path-editor.
+- The editor's vendored path editor (`editor/files/*/vendor/three-path-editor/`) is generated: change
+  `path-editor/src`, then `npm run vendor`. Never edit the vendored copy.
 - A change that requires playables to change something is **breaking**: say exactly what in
   `CHANGELOG.md`, and update `editor/INTEGRATION.md`.
 - Skills in `skills/` are linked into `~/.claude/skills` by `scripts/link.sh`; keep them short,

@@ -16,9 +16,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ka2nq1/three-js-path-editor.git"
+    "url": "git+https://github.com/ka2nq1/playable-kit.git",
+    "directory": "path-editor"
   },
-  "homepage": "https://github.com/ka2nq1/three-js-path-editor#readme",
+  "homepage": "https://github.com/ka2nq1/playable-kit/tree/main/path-editor#readme",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **One repository.** three-js-path-editor is now `path-editor/` and vfx-lab is `vfx-lab/` (merged with history). `kit.mjs copy` takes a kit path (`vfx-lab/src/vfx/effects/<id>`) instead of `vfx-lab:<path>`; `.kit.json` records `kit.commit` and kit-relative `from`. Root `package.json`: `setup`, `lab`, `path-editor:*`, `vendor`. Skills updated.
+
 - Skill `daily-report` moved into the kit (was a local skill on one machine).
 
 ## 0.1.0 — 2026-10-28

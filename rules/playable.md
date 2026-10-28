@@ -17,7 +17,8 @@ Grown from Pure Sniper Choice-Driven, Basketball Stars and vfx-lab; extended by 
 2. No magic values in logic: timings, speeds, colours, copy go into named config — preferably a
    JSON the editor's Tune tab can edit live.
 3. Positions never live in code: they are markers or routes in `placements.json`, looked up by id
-   or metadata, never by index.
+   or metadata, never by index (`src/kit/markers.ts`, `src/kit/routes.ts`). Following a route:
+   `PathFollower` — API reference in `~/projects/playable-kit/path-editor/skills/routes.md`.
 4. Events over per-frame polling; sequence by awaiting completion, not `wait(duration * ratio)`.
 5. Animations: one-shot = a tween with a single owner per property; looping motion is driven
    deterministically from time — never `.yoyo().repeat(Infinity)`.
@@ -37,7 +38,7 @@ Grown from Pure Sniper Choice-Driven, Basketball Stars and vfx-lab; extended by 
 
 ## VFX
 
-- Effects come from vfx-lab (`/vfx-new`). vfx-lab's "Traps already paid for" apply here too:
+- Effects come from the kit's vfx-lab (`/vfx-new`). vfx-lab's "Traps already paid for" apply here too:
   quad winding, double-sided transparent materials drawing twice, `smoothstep` edge order,
   sub-pixel particles, `#include <colorspace_fragment>`, linear vs sRGB constants.
 

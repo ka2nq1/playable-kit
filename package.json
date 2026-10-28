@@ -1,0 +1,14 @@
+{
+    "name": "playable-kit",
+    "private": true,
+    "description": "Editor, VFX lab, path editor, skills and rules for building 3D playables with Claude Code",
+    "scripts": {
+        "setup": "npm --prefix vfx-lab install && npm --prefix path-editor install && ./scripts/link.sh",
+        "lab": "npm --prefix vfx-lab start",
+        "lab:typecheck": "npm --prefix vfx-lab run typecheck",
+        "path-editor:build": "npm --prefix path-editor run build",
+        "path-editor:test": "npm --prefix path-editor test",
+        "path-editor:demo": "npm --prefix path-editor run demo",
+        "vendor": "npm --prefix path-editor run build && node scripts/vendor-path-editor.mjs"
+    }
+}
