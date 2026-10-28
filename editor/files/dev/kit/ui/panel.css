@@ -1,0 +1,307 @@
+:root {
+    --vl-bg: rgba(16, 14, 16, 0.82);
+    --vl-bg-solid: #161314;
+    --vl-line: rgba(255, 255, 255, 0.09);
+    --vl-text: #e9e2dc;
+    --vl-muted: #9b918a;
+    --vl-accent: #ff7a2f;
+    --vl-accent-dim: rgba(255, 122, 47, 0.22);
+}
+
+.vl-panel {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    width: 304px;
+    max-height: calc(100vh - 24px);
+    display: flex;
+    flex-direction: column;
+    background: var(--vl-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--vl-line);
+    border-radius: 10px;
+    color: var(--vl-text);
+    font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+    z-index: 10;
+    user-select: none;
+}
+
+.vl-panel[hidden] {
+    display: none;
+}
+
+.vl-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--vl-line);
+}
+
+.vl-title {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+.vl-sub {
+    color: var(--vl-muted);
+    font-size: 10px;
+    margin-left: auto;
+}
+
+.vl-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 6px;
+}
+
+.vl-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.vl-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 4px;
+}
+
+.vl-folder > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 7px 12px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--vl-muted);
+    border-top: 1px solid var(--vl-line);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vl-folder > summary::-webkit-details-marker {
+    display: none;
+}
+
+.vl-folder > summary::before {
+    content: "▸";
+    font-size: 9px;
+    transition: transform 0.12s ease;
+}
+
+.vl-folder[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.vl-folder[open] > summary {
+    color: var(--vl-text);
+}
+
+.vl-row {
+    display: grid;
+    grid-template-columns: 104px 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 12px 3px 20px;
+    min-height: 22px;
+}
+
+.vl-row > label {
+    color: var(--vl-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vl-row.vl-wide {
+    grid-template-columns: 1fr;
+}
+
+.vl-ctl {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+/* `rangeRows`: a title line, then one full-width track per end. */
+.vl-ctl > label {
+    flex: none;
+    color: var(--vl-muted);
+}
+
+.vl-tag {
+    flex: none;
+    width: 24px;
+    color: var(--vl-muted);
+}
+
+.vl-panel input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    min-width: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.16);
+    outline: none;
+}
+
+.vl-panel input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--vl-accent);
+    cursor: ew-resize;
+    box-shadow: 0 0 0 3px var(--vl-accent-dim);
+}
+
+.vl-num {
+    width: 46px;
+    flex: none;
+    text-align: right;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--vl-text);
+    font: inherit;
+    padding: 1px 4px;
+}
+
+.vl-num:focus {
+    border-color: var(--vl-accent);
+    outline: none;
+}
+
+.vl-panel input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 28px;
+    height: 15px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.14);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.14s ease;
+}
+
+.vl-panel input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform 0.14s ease;
+}
+
+.vl-panel input[type="checkbox"]:checked {
+    background: var(--vl-accent);
+}
+
+.vl-panel input[type="checkbox"]:checked::after {
+    transform: translateX(13px);
+}
+
+.vl-panel input[type="color"] {
+    width: 26px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid var(--vl-line);
+    border-radius: 4px;
+    background: none;
+    cursor: pointer;
+}
+
+.vl-panel select {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--vl-text);
+    border: 1px solid var(--vl-line);
+    border-radius: 4px;
+    font: inherit;
+    padding: 2px 4px;
+}
+
+.vl-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--vl-line);
+    border-radius: 5px;
+    color: var(--vl-text);
+    font: inherit;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.vl-btn:hover {
+    background: rgba(255, 122, 47, 0.18);
+    border-color: var(--vl-accent);
+}
+
+.vl-btn:active {
+    transform: translateY(1px);
+}
+
+.vl-btn.vl-primary {
+    background: rgba(255, 122, 47, 0.2);
+    border-color: rgba(255, 122, 47, 0.5);
+    color: #ffd9bf;
+}
+
+.vl-note {
+    padding: 2px 12px 7px 20px;
+    color: var(--vl-muted);
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.vl-readout {
+    color: var(--vl-text);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Stats overlay, bottom-left. */
+.vl-stats {
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    padding: 8px 11px;
+    background: var(--vl-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--vl-line);
+    border-radius: 8px;
+    color: var(--vl-text);
+    font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.vl-stats b {
+    color: var(--vl-accent);
+    font-weight: 600;
+}
+
+.vl-stats span {
+    color: var(--vl-muted);
+}
+
+.vl-hint {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    color: var(--vl-muted);
+    font: 11px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    z-index: 10;
+    pointer-events: none;
+}

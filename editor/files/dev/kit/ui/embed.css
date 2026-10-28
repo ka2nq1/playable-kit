@@ -1,0 +1,90 @@
+/*
+ * The lab's panel is a floating box of its own; inside a path-editor tab it has to flow in the
+ * tab's body instead of pinning itself to the corner of the screen.
+ */
+.vl-panel {
+    position: static;
+    width: auto;
+    max-height: none;
+    background: transparent;
+    backdrop-filter: none;
+    border: 0;
+    box-shadow: none;
+}
+
+.vl-panel .vl-head {
+    display: none; /* the tab is already labelled */
+}
+
+/*
+ * Tabs as a dropdown — see ui/tabSelect.ts. The strip is hidden rather than removed because the
+ * package rewrites it on every addTab; `!important` because it shows it by inline style.
+ */
+.tpe-panel.kit-tabs-as-select .tpe-tabs {
+    display: none !important;
+}
+
+.kit-tabselect {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #2c3442;
+}
+
+.kit-tabselect > span {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #8b95a7;
+}
+
+.kit-tabselect select {
+    flex: 1;
+    min-width: 0;
+}
+
+.kit-tabselect button {
+    flex: none;
+}
+
+.tpe-panel.collapsed .kit-tabselect {
+    display: none;
+}
+
+/* Docked: wider than the package's 280px, and resizable from its left edge by the browser. */
+.tpe-panel.kit-docked {
+    width: 360px;
+    min-width: 280px;
+    max-width: 70vw;
+    resize: horizontal;
+    direction: rtl; /* puts the resize grip on the left, the side facing the game */
+}
+
+.tpe-panel.kit-docked > * {
+    direction: ltr;
+}
+
+/* Popped out: the panel is the whole window. */
+html.kit-popout,
+html.kit-popout body {
+    margin: 0;
+    height: 100%;
+    background: #12161e;
+}
+
+html.kit-popout .tpe-panel {
+    position: static !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    min-height: 100%;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    resize: none;
+}
+
+html.kit-popout .tpe-panel header {
+    cursor: default;
+}

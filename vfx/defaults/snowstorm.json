@@ -1,0 +1,96 @@
+{
+    "anchor": {
+        "mesh": "",
+        "offset": [
+            0,
+            9,
+            0
+        ],
+        "fitSize": false
+    },
+    "enabled": true,
+    "bodyMode": "cards",
+    "quality": "medium",
+    "position": [
+        0,
+        0,
+        0
+    ],
+    "yaw": 0,
+    "scale": 1,
+    "size": {
+        "width": 34,
+        "height": 16,
+        "depth": 14
+    },
+    "appearance": {
+        "opacity": 1,
+        "density": 0.62,
+        "edgeSoftness": 0.42,
+        "shapeScale": 1.35,
+        "shapeWarp": 0.3,
+        "shapeDrift": 0.045,
+        "puffCount": 300,
+        "puffSize": 0.45,
+        "turbulence": 0.55,
+        "swirl": 0.22,
+        "detail": 1.7,
+        "snowColor": "#eef3f8",
+        "fogColor": "#a8b6c4",
+        "shadowColor": "#4d5663",
+        "lightAzimuth": 125,
+        "lightElevation": 38,
+        "coreShadow": 0.45,
+        "contrast": 0.35
+    },
+    "cards": {
+        "facing": "fixed",
+        "layers": 3,
+        "spread": 0.7,
+        "nearShrink": 0.55,
+        "margin": 1.15,
+        "baseWeight": 0.45,
+        "reliefStep": 0.35,
+        "driftSpeed": 0.05
+    },
+    "occlusion": {
+        "sunDim": 0.8,
+        "feather": 0.35
+    },
+    "movement": {
+        "enabled": true,
+        "mode": "pingpong",
+        "travel": [
+            34,
+            0,
+            0
+        ],
+        "speed": 0.55,
+        "speedVariation": 0.3,
+        "verticalDrift": 0.9,
+        "verticalPeriod": 23
+    },
+    "snow": {
+        "intensity": 0.7,
+        "windSpeed": 7.5,
+        "windAngle": 10,
+        "windPitch": 22,
+        "spread": 0.45,
+        "gustStrength": 0.45,
+        "gustFrequency": 7,
+        "size": 0.075,
+        "stretch": 5.5,
+        "color": "#f2f7fb",
+        "opacity": 0.85
+    },
+    "lightning": {
+        "enabled": false,
+        "mode": "flash",
+        "frequency": 9,
+        "intensity": 1.1,
+        "duration": 0.55,
+        "color": "#cfe2ff",
+        "radius": 0.65,
+        "branching": 0.55
+    }
+}

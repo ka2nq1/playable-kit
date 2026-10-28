@@ -1,0 +1,16 @@
+{
+    "enabled": true,
+    "length": 10,
+    "followWater": true,
+    "heightOffset": 0,
+    "timeScale": 1,
+    "triggerOnScore": true,
+    "delaySeconds": 0.2,
+    "cooldownSeconds": 0,
+    "splash": {
+        "enabled": true,
+        "exitScale": 3.5,
+        "entryScale": 6,
+        "tailScale": 4
+    }
+}

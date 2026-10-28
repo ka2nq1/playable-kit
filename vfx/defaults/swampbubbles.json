@@ -1,0 +1,58 @@
+{
+    "anchor": {
+        "mesh": "Circle.001",
+        "offset": [
+            0,
+            0.08,
+            0
+        ],
+        "fitSize": false
+    },
+    "enabled": true,
+    "bubbleCount": 6,
+    "spawnRate": 1.5,
+    "activityVariation": 0.97,
+    "minBubbleSize": 0.085,
+    "maxBubbleSize": 0.21,
+    "sizeBias": 2.4,
+    "growthSpeed": 1.6,
+    "popSpeed": 9,
+    "minLifetime": 0.5,
+    "maxLifetime": 2.4,
+    "spawnAreaSize": 1.5,
+    "surfaceOffset": 0.012,
+    "bubbleColor": "#a5b974",
+    "bubbleOpacity": 0.8,
+    "highlightIntensity": 0.62,
+    "emergence": 0.68,
+    "clusterChance": 0.22,
+    "clusterSize": [
+        2,
+        4
+    ],
+    "rippleEnabled": true,
+    "rippleSpeed": 0.55,
+    "rippleOpacity": 1.22,
+    "rippleColor": "#d5e1c6",
+    "rippleRadiusScale": 8.4,
+    "rippleWidth": 0.075,
+    "splashEnabled": true,
+    "splashProbability": 0.45,
+    "splashCount": [
+        2,
+        5
+    ],
+    "splashSpeed": [
+        0.5,
+        1.25
+    ],
+    "splashSize": [
+        0.012,
+        0.026
+    ],
+    "splashGravity": -9.8,
+    "splashColor": [
+        "#d2dfbf",
+        "#879a74"
+    ]
+}

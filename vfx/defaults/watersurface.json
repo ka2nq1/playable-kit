@@ -1,0 +1,27 @@
+{
+    "anchor": {
+        "mesh": "Circle.001",
+        "fitSize": true,
+        "heightOffset": 0.07,
+        "hideMesh": true
+    },
+    "enabled": true,
+    "surfaceSize": 103.1,
+    "opacity": 1,
+    "baseColor": "#24352a",
+    "deepColor": "#3a4b41",
+    "highlightColor": "#7f9a68",
+    "colorVariation": 1,
+    "highlightIntensity": 0.11,
+    "highlightThreshold": 0.47,
+    "fresnelIntensity": 0,
+    "waveAmplitude": 0,
+    "waveFrequency": 0.24,
+    "waveSpeed": 0,
+    "waveDirection": 0,
+    "secondaryWaveIntensity": 1.02,
+    "detailScale": 2.63,
+    "detailIntensity": 0.61,
+    "rippleIntensity": 0.3,
+    "rippleSpeed": 0.38
+}

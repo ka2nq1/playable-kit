@@ -1,0 +1,45 @@
+{
+    "anchor": {
+        "mesh": "Circle.001",
+        "offset": [
+            0,
+            0.08,
+            0
+        ],
+        "fitSize": false
+    },
+    "ambient": {
+        "enabled": true,
+        "minInterval": 3.0,
+        "maxInterval": 9.0,
+        "areaSize": 4,
+        "minScale": 0.5,
+        "maxScale": 1.3
+    },
+    "enabled": true,
+    "surfaceOffset": 0.012,
+    "splashHeight": 1.15,
+    "splashWidth": 0.52,
+    "splashIntensity": 1,
+    "splashDuration": 0.78,
+    "shapeVariation": 0.72,
+    "waterColor": "#6d8a5a",
+    "highlightIntensity": 0.85,
+    "opacity": 0.78,
+    "dropletCount": 26,
+    "dropletSize": 0.038,
+    "dropletSizeVariation": 0.55,
+    "spreadRadius": 0.34,
+    "launchVelocity": 3.4,
+    "gravity": -9.8,
+    "dropletLifetime": 1.1,
+    "dropletOpacity": 0.85,
+    "rippleEnabled": true,
+    "rippleCount": 3,
+    "rippleSpeed": 1.5,
+    "rippleWidth": 0.085,
+    "rippleOpacity": 0.6,
+    "rippleDuration": 1.6,
+    "secondarySplashEnabled": true,
+    "secondarySplashIntensity": 0.5
+}

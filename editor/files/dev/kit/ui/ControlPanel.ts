@@ -1,0 +1,410 @@
+/**
+ * A tiny tweak panel, written here rather than pulled from npm.
+ *
+ * The same panel as vfx-lab's (`src/lab/ui/ControlPanel.ts`), so an effect's lab controls port
+ * across almost verbatim. It carries no UI dependency at all: ~400 lines of DOM giving what tuning
+ * actually needs — sliders with typed overrides, paired min/max ranges, toggles, colours, buttons
+ * and live readouts.
+ *
+ * Controls are getter/setter bound rather than value-bound, so anything that changes config from
+ * outside the panel (a preset switch, `reset()`) shows up after one `refresh()` with no plumbing.
+ * The one exception is a control the user currently has focus in: see {@link isEditing}.
+ */
+
+import "./panel.css";
+
+type Getter<T> = () => T;
+type Setter<T> = (value: T) => void;
+
+export interface SliderOptions {
+    min: number;
+    max: number;
+    step?: number;
+}
+
+interface Binding {
+    sync(): void;
+}
+
+/**
+ * Is the user in the middle of this control right now?
+ *
+ * The panel re-reads every control from its getter a few times a second, which is what makes an
+ * effect's own changes (a preset, `reset()`, a `fit()`) show up without plumbing — and which, on a
+ * text box, used to overwrite the digits as they were being typed: the number vanished the moment
+ * the next refresh came round. A focused control is one the user owns, so the sync leaves it
+ * alone and picks it up again on blur, when `change` has already committed the value.
+ */
+function isEditing(el: Element): boolean {
+    // The panel may live in the pop-out window, whose focus is its own document's.
+    return el.ownerDocument.activeElement === el;
+}
+
+/** Commits a typed value on Enter as well as on blur, and selects the old one on focus. */
+function wireNumberBox(box: HTMLInputElement): void {
+    box.addEventListener("focus", () => box.select());
+    box.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") box.blur();
+        // The editor is listening for single keys (its toggle, and the path editor's shortcuts); a
+        // digit typed into a box is not a shortcut.
+        e.stopPropagation();
+    });
+}
+
+export class Folder {
+    readonly dom: HTMLDetailsElement;
+    private readonly bindings: Binding[];
+
+    constructor(title: string, open: boolean, bindings: Binding[]) {
+        this.bindings = bindings;
+        this.dom = document.createElement("details");
+        this.dom.className = "vl-folder";
+        this.dom.open = open;
+        const summary = document.createElement("summary");
+        summary.textContent = title;
+        this.dom.appendChild(summary);
+    }
+
+    private row(label: string | null): HTMLDivElement {
+        const row = document.createElement("div");
+        row.className = label === null ? "vl-row vl-wide" : "vl-row";
+        if (label !== null) {
+            const l = document.createElement("label");
+            l.textContent = label;
+            l.title = label;
+            row.appendChild(l);
+        }
+        const ctl = document.createElement("div");
+        ctl.className = "vl-ctl";
+        row.appendChild(ctl);
+        this.dom.appendChild(row);
+        return ctl as HTMLDivElement;
+    }
+
+    toggle(label: string, get: Getter<boolean>, set: Setter<boolean>): this {
+        const ctl = this.row(label);
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = get();
+        input.addEventListener("change", () => set(input.checked));
+        ctl.appendChild(input);
+        this.bindings.push({ sync: () => (input.checked = get()) });
+        return this;
+    }
+
+    /**
+     * Slider plus a number box. The box accepts values beyond the slider's range — handy when a
+     * parameter needs to be pushed past what the slider exposes for a one-off look test.
+     */
+    slider(label: string, opts: SliderOptions, get: Getter<number>, set: Setter<number>): this {
+        const ctl = this.row(label);
+        const step = opts.step ?? (opts.max - opts.min) / 200;
+
+        const range = document.createElement("input");
+        range.type = "range";
+        range.min = String(opts.min);
+        range.max = String(opts.max);
+        range.step = String(step);
+
+        const box = document.createElement("input");
+        box.type = "text";
+        box.className = "vl-num";
+        box.inputMode = "decimal";
+
+        const decimals = step >= 1 ? 0 : step >= 0.1 ? 1 : step >= 0.01 ? 2 : 3;
+        const show = (v: number) => {
+            range.value = String(v);
+            if (!isEditing(box)) box.value = v.toFixed(decimals);
+        };
+
+        range.addEventListener("input", () => {
+            const v = parseFloat(range.value);
+            set(v);
+            box.value = v.toFixed(decimals);
+        });
+        box.addEventListener("change", () => {
+            const v = parseFloat(box.value);
+            if (Number.isFinite(v)) {
+                set(v);
+                show(get());
+            } else {
+                show(get());
+            }
+        });
+
+        wireNumberBox(box);
+        show(get());
+        ctl.append(range, box);
+        this.bindings.push({ sync: () => show(get()) });
+        return this;
+    }
+
+    /**
+     * A `[min, max]` pair on one row.
+     *
+     * Almost every parameter in this system is a range — lifetime, speed, size — and giving each
+     * end its own labelled row would double the panel's height for no clarity. Dragging one
+     * handle past the other pushes the other along rather than producing an inverted range.
+     */
+    range(label: string, opts: SliderOptions, get: Getter<[number, number]>, set: Setter<[number, number]>): this {
+        const ctl = this.row(label);
+        const step = opts.step ?? (opts.max - opts.min) / 200;
+        const decimals = step >= 1 ? 0 : step >= 0.1 ? 1 : step >= 0.01 ? 2 : 3;
+
+        const lo = document.createElement("input");
+        const hi = document.createElement("input");
+        for (const el of [lo, hi]) {
+            el.type = "range";
+            el.min = String(opts.min);
+            el.max = String(opts.max);
+            el.step = String(step);
+        }
+        const readout = document.createElement("span");
+        readout.className = "vl-readout";
+        readout.style.cssText = "flex:none;width:72px;text-align:right";
+
+        const show = () => {
+            const [a, b] = get();
+            lo.value = String(a);
+            hi.value = String(b);
+            readout.textContent = `${a.toFixed(decimals)}–${b.toFixed(decimals)}`;
+        };
+
+        lo.addEventListener("input", () => {
+            const a = parseFloat(lo.value);
+            const [, b] = get();
+            set([a, Math.max(a, b)]);
+            show();
+        });
+        hi.addEventListener("input", () => {
+            const b = parseFloat(hi.value);
+            const [a] = get();
+            set([Math.min(a, b), b]);
+            show();
+        });
+
+        show();
+        ctl.append(lo, hi, readout);
+        this.bindings.push({ sync: show });
+        return this;
+    }
+
+    /**
+     * The same `[min, max]` pair as `range`, but with each end on its own full-width row.
+     *
+     * At the panel's width a paired range leaves each handle roughly a finger's worth of track,
+     * which is enough to read a value and not enough to place one. Use this for the pairs that get
+     * actually tuned — intervals, scales — and leave `range` for the ones only glanced at.
+     */
+    rangeRows(label: string, opts: SliderOptions, get: Getter<[number, number]>, set: Setter<[number, number]>): this {
+        const step = opts.step ?? (opts.max - opts.min) / 200;
+        const decimals = step >= 1 ? 0 : step >= 0.1 ? 1 : step >= 0.01 ? 2 : 3;
+
+        const head = this.row(null);
+        const title = document.createElement("label");
+        title.textContent = label;
+        const readout = document.createElement("span");
+        readout.className = "vl-readout";
+        readout.style.marginLeft = "auto";
+        head.append(title, readout);
+
+        const ends = [0, 1].map((index) => {
+            const ctl = this.row(null);
+            const tag = document.createElement("span");
+            tag.className = "vl-tag";
+            tag.textContent = index === 0 ? "min" : "max";
+
+            const range = document.createElement("input");
+            range.type = "range";
+            range.min = String(opts.min);
+            range.max = String(opts.max);
+            range.step = String(step);
+
+            const box = document.createElement("input");
+            box.type = "text";
+            box.className = "vl-num";
+            box.inputMode = "decimal";
+            wireNumberBox(box);
+
+            ctl.append(tag, range, box);
+            return { index, range, box };
+        });
+
+        const show = () => {
+            const pair = get();
+            for (const end of ends) {
+                end.range.value = String(pair[end.index]);
+                if (!isEditing(end.box)) end.box.value = pair[end.index].toFixed(decimals);
+            }
+            readout.textContent = `${pair[0].toFixed(decimals)}\u2013${pair[1].toFixed(decimals)}`;
+        };
+
+        // Pushing one end past the other carries the other along, as in `range`.
+        const write = (index: number, v: number) => {
+            const [a, b] = get();
+            set(index === 0 ? [v, Math.max(v, b)] : [Math.min(a, v), v]);
+            show();
+        };
+
+        for (const end of ends) {
+            end.range.addEventListener("input", () => write(end.index, parseFloat(end.range.value)));
+            end.box.addEventListener("change", () => {
+                const v = parseFloat(end.box.value);
+                if (Number.isFinite(v)) write(end.index, v);
+                else show();
+            });
+        }
+
+        show();
+        this.bindings.push({ sync: show });
+        return this;
+    }
+
+    color(label: string, get: Getter<string>, set: Setter<string>): this {
+        const ctl = this.row(label);
+        const input = document.createElement("input");
+        input.type = "color";
+        input.value = normalizeHex(get());
+        input.addEventListener("input", () => set(input.value));
+        ctl.appendChild(input);
+        this.bindings.push({
+            sync: () => {
+                if (!isEditing(input)) input.value = normalizeHex(get());
+            },
+        });
+        return this;
+    }
+
+    /** Two swatches side by side, for the `[from, to]` colour pairs the effects sample between. */
+    colorPair(label: string, get: Getter<[string, string]>, set: Setter<[string, string]>): this {
+        const ctl = this.row(label);
+        const a = document.createElement("input");
+        const b = document.createElement("input");
+        for (const el of [a, b]) el.type = "color";
+        const show = () => {
+            const [x, y] = get();
+            if (!isEditing(a)) a.value = normalizeHex(x);
+            if (!isEditing(b)) b.value = normalizeHex(y);
+        };
+        a.addEventListener("input", () => set([a.value, get()[1]]));
+        b.addEventListener("input", () => set([get()[0], b.value]));
+        show();
+        ctl.append(a, b);
+        this.bindings.push({ sync: show });
+        return this;
+    }
+
+    select<T extends string>(label: string, options: readonly T[], get: Getter<T>, set: Setter<T>): this {
+        const ctl = this.row(label);
+        const el = document.createElement("select");
+        for (const opt of options) {
+            const o = document.createElement("option");
+            o.value = opt;
+            o.textContent = opt;
+            el.appendChild(o);
+        }
+        el.value = get();
+        el.addEventListener("change", () => set(el.value as T));
+        ctl.appendChild(el);
+        this.bindings.push({
+            sync: () => {
+                if (!isEditing(el)) el.value = get();
+            },
+        });
+        return this;
+    }
+
+    /** One or more buttons sharing a row. */
+    buttons(...items: Array<{ label: string; onClick: () => void; primary?: boolean }>): this {
+        const ctl = this.row(null);
+        for (const item of items) {
+            const btn = document.createElement("button");
+            btn.className = item.primary ? "vl-btn vl-primary" : "vl-btn";
+            btn.textContent = item.label;
+            btn.addEventListener("click", item.onClick);
+            ctl.appendChild(btn);
+        }
+        return this;
+    }
+
+    /** A read-only value refreshed by `ControlPanel.tick()`. */
+    readout(label: string, get: Getter<string>): this {
+        const ctl = this.row(label);
+        const span = document.createElement("span");
+        span.className = "vl-readout";
+        ctl.appendChild(span);
+        const sync = () => (span.textContent = get());
+        sync();
+        this.bindings.push({ sync });
+        return this;
+    }
+
+    note(text: string): this {
+        const p = document.createElement("p");
+        p.className = "vl-note";
+        p.textContent = text;
+        this.dom.appendChild(p);
+        return this;
+    }
+}
+
+export class ControlPanel {
+    readonly dom: HTMLDivElement;
+
+    private readonly body: HTMLDivElement;
+    private readonly bindings: Binding[] = [];
+
+    constructor(title: string, subtitle = "") {
+        this.dom = document.createElement("div");
+        this.dom.className = "vl-panel";
+
+        const head = document.createElement("div");
+        head.className = "vl-head";
+        const t = document.createElement("span");
+        t.className = "vl-title";
+        t.textContent = title;
+        const s = document.createElement("span");
+        s.className = "vl-sub";
+        s.textContent = subtitle;
+        head.append(t, s);
+
+        this.body = document.createElement("div");
+        this.body.className = "vl-body";
+
+        this.dom.append(head, this.body);
+    }
+
+    folder(title: string, open = true): Folder {
+        const f = new Folder(title, open, this.bindings);
+        this.body.appendChild(f.dom);
+        return f;
+    }
+
+    /** Empties the panel, for when the selected effect changes. */
+    clear(): void {
+        this.body.replaceChildren();
+        this.bindings.length = 0;
+    }
+
+    /** Pulls every control's value from its getter. Call after config changes from outside. */
+    refresh(): void {
+        for (const b of this.bindings) b.sync();
+    }
+
+    get visible(): boolean {
+        return !this.dom.hidden;
+    }
+
+    set visible(v: boolean) {
+        this.dom.hidden = !v;
+    }
+}
+
+/** `<input type="color">` only accepts `#rrggbb`; expand shorthand and reject anything else. */
+function normalizeHex(hex: string): string {
+    if (/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+    if (/^#[0-9a-f]{3}$/i.test(hex)) {
+        return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+    }
+    return "#ffffff";
+}

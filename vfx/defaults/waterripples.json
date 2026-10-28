@@ -1,0 +1,186 @@
+{
+    "anchor": {
+        "mesh": "Circle.001",
+        "offset": [
+            0,
+            0.08,
+            0
+        ],
+        "fitSize": false
+    },
+    "ambient": {
+        "enabled": true,
+        "preset": "ambient",
+        "rate": 0.6,
+        "radius": 3
+    },
+    "quality": {
+        "preset": "high",
+        "presets": {
+            "low": {
+                "particles": 0.5,
+                "rings": 0.6
+            },
+            "high": {
+                "particles": 1.0,
+                "rings": 1.0
+            }
+        }
+    },
+    "ripples": {
+        "enabled": true,
+        "maxRipples": 48,
+        "surfaceOffset": 0.015,
+        "troughColor": "#02100d",
+        "defaults": {
+            "rings": 2,
+            "ringDelay": 0.16,
+            "startRadius": 0.05,
+            "maxRadius": 1.4,
+            "duration": 1.8,
+            "width": 0.11,
+            "widthGrowth": 0.65,
+            "intensity": 0.6,
+            "wobble": 0.045,
+            "jitter": 0.3,
+            "scale": 1.0,
+            "priority": 1,
+            "color": "#a8bd90"
+        },
+        "opacityOverLife": [
+            [
+                0,
+                0
+            ],
+            [
+                0.08,
+                1
+            ],
+            [
+                0.5,
+                0.7
+            ],
+            [
+                1,
+                0
+            ]
+        ]
+    },
+    "spray": {
+        "enabled": true,
+        "maxParticles": 160,
+        "emission": {
+            "burstCount": [
+                8,
+                14
+            ]
+        },
+        "lifetime": [
+            0.35,
+            0.8
+        ],
+        "spawn": {
+            "radius": 0.09,
+            "height": 0.04
+        },
+        "direction": {
+            "upward": 0.72,
+            "spreadDeg": 34
+        },
+        "velocity": {
+            "speed": [
+                1.1,
+                2.6
+            ]
+        },
+        "gravity": -9.8,
+        "drag": 0.5,
+        "size": [
+            0.018,
+            0.05
+        ],
+        "opacity": [
+            0.45,
+            0.85
+        ],
+        "color": {
+            "range": [
+                "#e8f7f2",
+                "#a4d4c8"
+            ]
+        },
+        "opacityOverLife": [
+            [
+                0,
+                1
+            ],
+            [
+                0.6,
+                0.9
+            ],
+            [
+                1,
+                0
+            ]
+        ],
+        "scaleOverLife": [
+            [
+                0,
+                1
+            ],
+            [
+                1,
+                0.65
+            ]
+        ]
+    },
+    "defaultPreset": "impact",
+    "presets": {
+        "impact": {
+            "rings": 3,
+            "ringDelay": 0.13,
+            "startRadius": 0.05,
+            "maxRadius": 1.5,
+            "duration": 1.5,
+            "width": 0.1,
+            "intensity": 0.8,
+            "priority": 2,
+            "spray": {
+                "count": 10,
+                "speedScale": 1.0
+            },
+            "color": "#a8bd90"
+        },
+        "emergence": {
+            "rings": 4,
+            "ringDelay": 0.28,
+            "startRadius": 0.45,
+            "maxRadius": 3.4,
+            "duration": 2.9,
+            "width": 0.2,
+            "widthGrowth": 0.8,
+            "intensity": 0.85,
+            "wobble": 0.08,
+            "priority": 3,
+            "spray": {
+                "count": 22,
+                "speedScale": 1.3
+            }
+        },
+        "ambient": {
+            "rings": 2,
+            "ringDelay": 0.34,
+            "startRadius": 0.04,
+            "maxRadius": 0.85,
+            "duration": 2.2,
+            "width": 0.07,
+            "intensity": 0.3,
+            "wobble": 0.05,
+            "priority": 0,
+            "spray": {
+                "count": 0,
+                "speedScale": 0
+            }
+        }
+    }
+}

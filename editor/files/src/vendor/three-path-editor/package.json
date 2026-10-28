@@ -1,0 +1,7 @@
+{
+    "name": "three-path-editor-vendored",
+    "private": true,
+    "version": "0.5.0",
+    "type": "module",
+    "sideEffects": false
+}

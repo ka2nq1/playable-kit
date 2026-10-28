@@ -1,0 +1,42 @@
+{
+    "anchor": {
+        "mesh": "",
+        "offset": [
+            0,
+            0.05,
+            0
+        ],
+        "fitSize": false
+    },
+    "version": 1,
+    "enabled": true,
+    "particleCount": 260,
+    "emissionRate": 30,
+    "emissionWidth": 2.6,
+    "emissionDepth": 2.6,
+    "emissionHeight": 0.05,
+    "emissionShape": "disc",
+    "riseSpeed": 0.55,
+    "riseSpeedVariation": 0.45,
+    "driftSpeed": 0.12,
+    "driftAngle": 35,
+    "turbulence": 0.14,
+    "spread": 0.5,
+    "maxHeight": 6.5,
+    "minSize": 0.016,
+    "maxSize": 0.055,
+    "sizeVariation": 0.45,
+    "hotColor": "#fff0b4",
+    "baseColor": "#ff7a1e",
+    "coolColor": "#8c1c06",
+    "glowIntensity": 1.1,
+    "opacity": 0.95,
+    "minScreenSize": 0.004,
+    "minLifetime": 4.5,
+    "maxLifetime": 11.0,
+    "fadeInDuration": 0.35,
+    "fadeOutDuration": 2.2,
+    "flickerSpeed": 7.0,
+    "flickerIntensity": 0.42,
+    "coolingIntensity": 0.8
+}

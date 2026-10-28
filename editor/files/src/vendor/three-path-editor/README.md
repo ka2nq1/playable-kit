@@ -1,0 +1,14 @@
+# three-path-editor 0.5.0 — runtime half (vendored by playable-kit)
+
+The runtime part of [three-path-editor](https://github.com/ka2nq1/three-js-path-editor)'s `dist/`,
+copied in rather than installed. MIT, see `LICENSE`. The editing half lives in
+`dev/vendor/three-path-editor/`, outside `src/`, where no build can walk into it.
+
+Only `src/kit/routes.ts` imports it (`readPathFile`, `Path`) — and through it whatever follows a
+route with `PathFollower`. If nothing in the game imports `routes.ts`, none of this ships. When it
+does, it costs ~67 KB of the bundle. Markers (`src/kit/markers.ts`) are parsed by hand and cost
+nothing.
+
+Vendored, not installed, because the ad platform rebuilds from `ps.zip` (a snapshot of `src/` and
+`package.json`): a `file:` dependency on a tarball would only resolve if the tarball travelled
+inside `src/`. Updated with `playable-kit/scripts/vendor-path-editor.mjs`.

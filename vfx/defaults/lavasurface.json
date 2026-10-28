@@ -1,0 +1,33 @@
+{
+    "anchor": {
+        "mesh": "Plane",
+        "fitSize": true,
+        "heightOffset": -0.08,
+        "hideMesh": true
+    },
+    "enabled": true,
+
+    "crustColor": "#14100f",
+    "secondaryCrustColor": "#36291f",
+    "moltenColor": "#ff5a0f",
+    "hotColor": "#ffd37a",
+    "glowIntensity": 1.15,
+    "colorVariation": 0.68,
+    "crustVariation": 0.55,
+
+    "patternScale": 5,
+    "crackWidth": 0.085,
+    "crackVariation": 0.8,
+    "patternDistortion": 0.42,
+    "detailScale": 3.2,
+
+    "flowSpeed": 0.11,
+    "flowDirection": 24,
+    "flowIntensity": 0.6,
+    "heatPulseSpeed": 0.3,
+    "heatPulseIntensity": 0.22,
+
+    "surfaceSize": 138.5,
+    "displacementIntensity": 0.08,
+    "edgeFade": 0.45
+}
