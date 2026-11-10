@@ -1293,5 +1293,743 @@ export const SKY_PRESET_DATA: Readonly<Record<string, SkyPresetEntry>> = {
                 "timeOfDay": 15
             }
         }
+    },
+    // ---- Cinematic: authored looks, sun placed by hand, palette frozen (dayNightBlend 0) ----
+    "cine-ember-sea": {
+        "label": "Cine · Ember Sea",
+        "config": {
+            "sky": {
+                "zenithColor": "#3e3550",
+                "upperSkyColor": "#a8404a",
+                "horizonColor": "#ffae4a",
+                "lowerHorizonColor": "#a13a26",
+                "atmosphereIntensity": 1.8,
+                "hazeIntensity": 0.35,
+                "gradientSoftness": 0.7,
+                "skySaturation": 1.25,
+                "skyContrast": 1.1,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 0,
+                "elevation": 2.5,
+                "color": "#ffd27a",
+                "size": 2.2,
+                "intensity": 3,
+                "glowIntensity": 1.6,
+                "glowRadius": 30,
+                "glowSoftness": 0.75,
+                "raysIntensity": 0.25,
+                "raysColor": "#ffb067",
+                "raysLength": 35,
+                "raysCount": 22,
+                "raysSharpness": 1.6,
+                "raysOverClouds": 0.2
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "puffy",
+                "coverage": 0.68,
+                "density": 1.1,
+                "scale": 1.3,
+                "softness": 0.45,
+                "variation": 0.7,
+                "color": "#ffb48c",
+                "shadowColor": "#5a3f5e",
+                "lightInfluence": 1.4,
+                "speed": 0.4,
+                "direction": 20,
+                "rimIntensity": 1.2,
+                "rimTightness": 8,
+                "rimEdge": 0.6,
+                "glowColor": "#ff4a22",
+                "glowIntensity": 1.1,
+                "glowSpread": 0.75
+            },
+            "atmosphere": {
+                "fogNear": 10,
+                "fogFar": 110
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ff8a4a",
+                "directionalIntensity": 1.6,
+                "ambientColor": "#7a4a5a",
+                "ambientIntensity": 0.8
+            },
+            "time": {
+                "timeOfDay": 18.2,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-golden-valley": {
+        "label": "Cine · Golden Valley",
+        "config": {
+            "sky": {
+                "zenithColor": "#5e1d06",
+                "upperSkyColor": "#c94f0c",
+                "horizonColor": "#ffc24a",
+                "lowerHorizonColor": "#6a3410",
+                "atmosphereIntensity": 2.2,
+                "hazeIntensity": 0.6,
+                "gradientSoftness": 0.9,
+                "skySaturation": 1.3,
+                "exposure": 1.1,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 12,
+                "elevation": 7,
+                "color": "#ffe08a",
+                "size": 1.8,
+                "intensity": 3.2,
+                "glowIntensity": 2.2,
+                "glowRadius": 45,
+                "glowSoftness": 0.85,
+                "raysIntensity": 0.9,
+                "raysColor": "#ffd27a",
+                "raysLength": 60,
+                "raysCount": 14,
+                "raysSharpness": 2.4,
+                "raysSpeed": 0.1,
+                "raysOverClouds": 0.55
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "scattered",
+                "coverage": 0.6,
+                "density": 1.2,
+                "scale": 0.9,
+                "detail": 1.3,
+                "softness": 0.4,
+                "variation": 0.6,
+                "color": "#ffcf7a",
+                "shadowColor": "#4a1c0c",
+                "lightInfluence": 1.6,
+                "speed": 0.5,
+                "direction": 0,
+                "stretch": 1.8,
+                "rimIntensity": 2,
+                "rimTightness": 5,
+                "rimEdge": 0.7,
+                "glowColor": "#ff7a1a",
+                "glowIntensity": 0.8,
+                "glowSpread": 0.45,
+                "sunGap": 0.35,
+                "sunGapRadius": 9
+            },
+            "atmosphere": {
+                "fogNear": 10,
+                "fogFar": 120,
+                "tint": "#ff9a2a",
+                "tintStrength": 0.06
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ffb04a",
+                "directionalIntensity": 2.2,
+                "ambientColor": "#7a4a2a",
+                "ambientIntensity": 0.9
+            },
+            "time": {
+                "timeOfDay": 18,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-candy-streaks": {
+        "label": "Cine · Candy Streaks",
+        "config": {
+            "sky": {
+                "zenithColor": "#1f2a8c",
+                "upperSkyColor": "#7a3fb0",
+                "horizonColor": "#ffb36a",
+                "lowerHorizonColor": "#5a2a6a",
+                "atmosphereIntensity": 1.4,
+                "hazeIntensity": 0.4,
+                "gradientSoftness": 1.1,
+                "skySaturation": 1.35,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": -8,
+                "elevation": 0.8,
+                "color": "#ffd38a",
+                "size": 1.4,
+                "intensity": 2.4,
+                "glowIntensity": 1.4,
+                "glowRadius": 34,
+                "glowSoftness": 0.9
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "wispy",
+                "coverage": 0.75,
+                "density": 1.6,
+                "scale": 0.8,
+                "detail": 1.2,
+                "softness": 0.6,
+                "variation": 0.8,
+                "color": "#ff9ac8",
+                "shadowColor": "#4a2470",
+                "lightInfluence": 1,
+                "speed": 0.7,
+                "direction": 90,
+                "stretch": 6,
+                "rimIntensity": 0.8,
+                "rimTightness": 6,
+                "rimEdge": 0.4,
+                "glowColor": "#ff5c9e",
+                "glowIntensity": 1.3,
+                "glowSpread": 1
+            },
+            "atmosphere": {
+                "fogNear": 10,
+                "fogFar": 120
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ff8fb0",
+                "directionalIntensity": 1.3,
+                "ambientColor": "#5a4a9a",
+                "ambientIntensity": 1
+            },
+            "time": {
+                "timeOfDay": 18.3,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-heaven-breach": {
+        "label": "Cine · Heaven Breach",
+        "config": {
+            "sky": {
+                "zenithColor": "#1a1c22",
+                "upperSkyColor": "#3d3f47",
+                "horizonColor": "#e0a070",
+                "lowerHorizonColor": "#2a2a2e",
+                "atmosphereIntensity": 1.2,
+                "hazeIntensity": 0.55,
+                "skySaturation": 0.9,
+                "skyContrast": 1.25,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 0,
+                "elevation": 24,
+                "color": "#fff1d6",
+                "size": 1.2,
+                "intensity": 2.4,
+                "glowIntensity": 1.4,
+                "glowRadius": 22,
+                "glowSoftness": 0.6,
+                "raysIntensity": 1.6,
+                "raysColor": "#fff0d0",
+                "raysLength": 75,
+                "raysCount": 11,
+                "raysSharpness": 3.2,
+                "raysSpeed": 0.08,
+                "raysOverClouds": 0.8
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "storm",
+                "coverage": 0.55,
+                "density": 1.2,
+                "scale": 0.8,
+                "detail": 1.1,
+                "softness": 0.5,
+                "variation": 0.5,
+                "color": "#76737a",
+                "shadowColor": "#18171d",
+                "lightInfluence": 1.8,
+                "speed": 0.35,
+                "direction": 30,
+                "rimIntensity": 3,
+                "rimTightness": 10,
+                "rimEdge": 0.9,
+                "glowColor": "#c98a5a",
+                "glowIntensity": 0.35,
+                "glowSpread": 0.2,
+                "sunGap": 0.75,
+                "sunGapRadius": 16
+            },
+            "atmosphere": {
+                "fogNear": 8,
+                "fogFar": 100
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ffe6c0",
+                "directionalIntensity": 2.4,
+                "ambientColor": "#3a3c46",
+                "ambientIntensity": 0.6
+            },
+            "time": {
+                "timeOfDay": 16,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-silver-lining": {
+        "label": "Cine · Silver Lining",
+        "config": {
+            "sky": {
+                "zenithColor": "#2c5aa8",
+                "upperSkyColor": "#5c8ccc",
+                "horizonColor": "#d6e2ee",
+                "lowerHorizonColor": "#7a8696",
+                "atmosphereIntensity": 0.8,
+                "hazeIntensity": 0.4,
+                "skyContrast": 1.15,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 5,
+                "elevation": 32,
+                "color": "#fffaf0",
+                "size": 1.3,
+                "intensity": 3,
+                "glowIntensity": 1,
+                "glowRadius": 20,
+                "glowSoftness": 0.6,
+                "raysIntensity": 0.7,
+                "raysColor": "#ffffff",
+                "raysLength": 45,
+                "raysCount": 18,
+                "raysSharpness": 2.6,
+                "raysOverClouds": 0.15
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "puffy",
+                "coverage": 0.55,
+                "density": 1.4,
+                "scale": 1.1,
+                "softness": 0.35,
+                "variation": 0.6,
+                "color": "#f4f6fa",
+                "shadowColor": "#4c5566",
+                "lightInfluence": 2,
+                "speed": 0.5,
+                "direction": 45,
+                "rimIntensity": 4,
+                "rimTightness": 7,
+                "rimEdge": 1,
+                "sunGap": 0.25,
+                "sunGapRadius": 7
+            },
+            "atmosphere": {
+                "fogNear": 20,
+                "fogFar": 160
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#fff6e6",
+                "directionalIntensity": 2.8,
+                "ambientColor": "#8aa0c0",
+                "ambientIntensity": 0.9
+            },
+            "time": {
+                "timeOfDay": 14,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-crimson-eclipse": {
+        "label": "Cine · Crimson Eclipse",
+        "config": {
+            "sky": {
+                "zenithColor": "#12040a",
+                "upperSkyColor": "#4a0c14",
+                "horizonColor": "#d8321e",
+                "lowerHorizonColor": "#2a0808",
+                "atmosphereIntensity": 2.4,
+                "hazeIntensity": 0.6,
+                "skySaturation": 1.4,
+                "skyContrast": 1.3,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 0,
+                "elevation": 4,
+                "color": "#ff6a2a",
+                "size": 7,
+                "intensity": 2.2,
+                "glowIntensity": 1.8,
+                "glowRadius": 40,
+                "glowSoftness": 0.9,
+                "raysIntensity": 0.45,
+                "raysColor": "#ff4a1a",
+                "raysLength": 90,
+                "raysCount": 8,
+                "raysSharpness": 3.5,
+                "raysSpeed": 0.05,
+                "raysOverClouds": 0.1
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "storm",
+                "coverage": 0.38,
+                "density": 1.6,
+                "scale": 1.2,
+                "softness": 0.3,
+                "variation": 0.8,
+                "color": "#3a0e12",
+                "shadowColor": "#0a0204",
+                "lightInfluence": 1.2,
+                "speed": 0.3,
+                "direction": 0,
+                "stretch": 9,
+                "rimIntensity": 2.4,
+                "rimTightness": 12,
+                "rimEdge": 1,
+                "glowColor": "#ff3a14",
+                "glowIntensity": 0.5,
+                "glowSpread": 0
+            },
+            "atmosphere": {
+                "fogNear": 6,
+                "fogFar": 90,
+                "tint": "#ff2a10",
+                "tintStrength": 0.05
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ff4a20",
+                "directionalIntensity": 1.4,
+                "ambientColor": "#4a1418",
+                "ambientIntensity": 0.6
+            },
+            "time": {
+                "timeOfDay": 18.4,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-lavender-afterglow": {
+        "label": "Cine · Lavender Afterglow",
+        "config": {
+            "sky": {
+                "zenithColor": "#2b2f6a",
+                "upperSkyColor": "#8a76c0",
+                "horizonColor": "#ffc8a0",
+                "lowerHorizonColor": "#5a4a70",
+                "atmosphereIntensity": 1.2,
+                "hazeIntensity": 0.7,
+                "gradientSoftness": 1.2,
+                "skySaturation": 1.1,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 0,
+                "elevation": -1.5,
+                "color": "#ffb48a",
+                "size": 1.6,
+                "intensity": 1,
+                "glowIntensity": 1.2,
+                "glowRadius": 50,
+                "glowSoftness": 1
+            },
+            "stars": {
+                "enabled": true,
+                "brightness": 0.6,
+                "density": 44,
+                "coverage": 0.3,
+                "twinkleIntensity": 0.5
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "scattered",
+                "coverage": 0.55,
+                "density": 1,
+                "scale": 0.7,
+                "detail": 1.2,
+                "softness": 0.55,
+                "variation": 0.7,
+                "color": "#b8a6d8",
+                "shadowColor": "#3a3260",
+                "lightInfluence": 0.6,
+                "speed": 0.35,
+                "direction": 70,
+                "stretch": 2.5,
+                "rimIntensity": 0.3,
+                "glowColor": "#ff9c8a",
+                "glowIntensity": 1.5,
+                "glowSpread": 0.85
+            },
+            "atmosphere": {
+                "fogNear": 10,
+                "fogFar": 120
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ffb0a0",
+                "directionalIntensity": 0.9,
+                "ambientColor": "#6a5a9a",
+                "ambientIntensity": 1.1
+            },
+            "time": {
+                "timeOfDay": 18.6,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-mackerel-gold": {
+        "label": "Cine · Mackerel Gold",
+        "config": {
+            "sky": {
+                "zenithColor": "#1e4a8e",
+                "upperSkyColor": "#5a86b8",
+                "horizonColor": "#ffd9a0",
+                "lowerHorizonColor": "#8a7a6a",
+                "atmosphereIntensity": 1.4,
+                "hazeIntensity": 0.45,
+                "skySaturation": 1.15,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 10,
+                "elevation": 9,
+                "color": "#ffdc90",
+                "size": 1.5,
+                "intensity": 3,
+                "glowIntensity": 1.3,
+                "glowRadius": 28,
+                "glowSoftness": 0.7,
+                "raysIntensity": 0.4,
+                "raysColor": "#ffe0a0",
+                "raysLength": 40,
+                "raysCount": 26,
+                "raysSharpness": 1.8,
+                "raysOverClouds": 0.3
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "puffy",
+                "coverage": 0.6,
+                "density": 1.2,
+                "scale": 3,
+                "detail": 0.9,
+                "softness": 0.4,
+                "variation": 0.9,
+                "color": "#fff0d0",
+                "shadowColor": "#56607a",
+                "lightInfluence": 1.4,
+                "speed": 0.6,
+                "direction": 110,
+                "stretch": 2.2,
+                "rimIntensity": 1.6,
+                "rimTightness": 4,
+                "rimEdge": 0.6,
+                "glowColor": "#ffa040",
+                "glowIntensity": 0.9,
+                "glowSpread": 0.5
+            },
+            "atmosphere": {
+                "fogNear": 14,
+                "fogFar": 140
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ffcf80",
+                "directionalIntensity": 2.2,
+                "ambientColor": "#7a8aaa",
+                "ambientIntensity": 0.9
+            },
+            "time": {
+                "timeOfDay": 17.5,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
+    },
+    "cine-storm-front": {
+        "label": "Cine · Storm Front",
+        "config": {
+            "sky": {
+                "zenithColor": "#14161c",
+                "upperSkyColor": "#2c3038",
+                "horizonColor": "#ff8a3a",
+                "lowerHorizonColor": "#2a1c16",
+                "atmosphereIntensity": 2.4,
+                "hazeIntensity": 0.4,
+                "skyContrast": 1.3,
+                "skySaturation": 1.2,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": 0,
+                "elevation": 3,
+                "color": "#ffb050",
+                "size": 2,
+                "intensity": 3,
+                "glowIntensity": 1.8,
+                "glowRadius": 32,
+                "glowSoftness": 0.8,
+                "raysIntensity": 1.1,
+                "raysColor": "#ffa850",
+                "raysLength": 55,
+                "raysCount": 12,
+                "raysSharpness": 2.8,
+                "raysSpeed": 0.12,
+                "raysOverClouds": 0.35
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "storm",
+                "coverage": 0.6,
+                "density": 1.4,
+                "scale": 0.7,
+                "detail": 1.2,
+                "softness": 0.45,
+                "variation": 0.6,
+                "color": "#4a4a52",
+                "shadowColor": "#0e0e12",
+                "lightInfluence": 1.5,
+                "speed": 1.1,
+                "direction": 200,
+                "stretch": 1.6,
+                "rimIntensity": 2.2,
+                "rimTightness": 5,
+                "rimEdge": 0.8,
+                "glowColor": "#ff6a1a",
+                "glowIntensity": 1.6,
+                "glowSpread": 0.05,
+                "sunGap": 0.55,
+                "sunGapRadius": 14
+            },
+            "weather": {
+                "type": "clear",
+                "lightning": {
+                    "enabled": true,
+                    "frequency": 3,
+                    "intensity": 0.6,
+                    "bolts": false
+                }
+            },
+            "atmosphere": {
+                "fogNear": 8,
+                "fogFar": 100
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ff9040",
+                "directionalIntensity": 1.8,
+                "ambientColor": "#2e3240",
+                "ambientIntensity": 0.6
+            },
+            "time": {
+                "timeOfDay": 18.1,
+                "driveCelestials": false
+            }
+        }
+    },
+    "cine-teal-orange": {
+        "label": "Cine · Teal & Orange",
+        "config": {
+            "sky": {
+                "zenithColor": "#0c3a4a",
+                "upperSkyColor": "#2a7a8a",
+                "horizonColor": "#ffb070",
+                "lowerHorizonColor": "#3a3a3a",
+                "atmosphereIntensity": 2,
+                "hazeIntensity": 0.55,
+                "gradientSoftness": 0.9,
+                "skySaturation": 1.25,
+                "skyContrast": 1.15,
+                "dayNightBlend": 0
+            },
+            "sun": {
+                "enabled": true,
+                "azimuth": -15,
+                "elevation": 6,
+                "color": "#ffbe78",
+                "size": 1.6,
+                "intensity": 3.4,
+                "glowIntensity": 2,
+                "glowRadius": 38,
+                "glowSoftness": 0.85,
+                "raysIntensity": 0.7,
+                "raysColor": "#ffb070",
+                "raysLength": 120,
+                "raysCount": 34,
+                "raysSharpness": 1.3,
+                "raysSpeed": 0.2,
+                "raysOverClouds": 1
+            },
+            "clouds": {
+                "enabled": true,
+                "type": "wispy",
+                "coverage": 0.45,
+                "density": 1.2,
+                "scale": 0.6,
+                "softness": 0.6,
+                "variation": 0.7,
+                "color": "#ffd2a8",
+                "shadowColor": "#1e4a56",
+                "lightInfluence": 1.2,
+                "speed": 0.5,
+                "direction": 0,
+                "stretch": 4,
+                "rimIntensity": 1.5,
+                "rimTightness": 5,
+                "rimEdge": 0.5,
+                "glowColor": "#ff8a3a",
+                "glowIntensity": 0.9,
+                "glowSpread": 0.35
+            },
+            "atmosphere": {
+                "fogNear": 12,
+                "fogFar": 140
+            },
+            "lighting": {
+                "driveFromSun": false,
+                "directionalColor": "#ffa868",
+                "directionalIntensity": 2,
+                "ambientColor": "#2a6a7a",
+                "ambientIntensity": 1
+            },
+            "time": {
+                "timeOfDay": 17.8,
+                "driveCelestials": false
+            },
+            "weather": {
+                "type": "clear"
+            }
+        }
     }
 };

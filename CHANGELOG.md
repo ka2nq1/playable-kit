@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Sky: cinematic controls — sun rays (`sun.rays*`), sunset underlighting, silver lining on edges, stretched decks and a gap round the sun (`clouds.glow*`, `rim*`, `stretch`, `sunGap*`); all default off, existing presets unchanged. 10 `cine-*` presets. The editor's Sky panel gets a preset list (`vfxEntry` option `header`: extra folders above the generated Settings).
 - **Editor redesign** (breaking for anything built on 0.1): its own window by default (dock as fallback), a menu bar of sections — Scene, VFX, Tune, project tabs — and a status line. VFX is a grid of tiles with live previews rendered from the effects themselves; a tile opens the effect's editor (points as chips, actions, controls in columns). `placeTab`/`tabSelect`/`embed.css` removed; `VfxDevEntry` gains `group`, `hint`, `preview`, `burst`, `defaultConfig`.
 - `defineMapVfx()` (runtime) + `vfxEntry()` (editor): a map effect in two small files, with controls generated from the effect's config. Adapters for all 16 lab effects in `vfx/adapters/`.
 - `EditorConfig.saveDisabled` — Save becomes a no-op with a note beside every Save button (the public demo).

@@ -22,6 +22,11 @@ export interface VfxEntryOptions<V extends MapVfxEffect> {
     group?: string;
     hint?: string;
     schema?: AutoSchema;
+    /**
+     * Extra folders above the generated Settings, for what a config field cannot say — a preset
+     * list, an action. The generated controls stay; call `panel.refresh()` after changing the config.
+     */
+    header?(panel: ControlPanel, instance: MapVfxInstance<V>, ctx: VfxPanelContext): void;
     /** Replaces the generated controls (the Effect and Anchor folders stay). */
     controls?(panel: ControlPanel, instance: MapVfxInstance<V>, ctx: VfxPanelContext): void;
     /** What `fitSize` means for this effect; empty hides the toggle. */
@@ -130,6 +135,7 @@ export function vfxEntry<V extends MapVfxEffect>(controller: MapVfxController<V>
                 fitSizeNote: definition.fitSize ? (options.fitSizeNote ?? "takes its size from the mesh") : "",
             });
 
+            options.header?.(panel, instance, ctx);
             if (options.controls) {
                 options.controls(panel, instance, ctx);
                 return;

@@ -95,6 +95,23 @@ export interface SunConfig {
     /** Angular radius of the glow lobe, in degrees. */
     glowRadius: number;
     glowSoftness: number;
+    /**
+     * Crepuscular rays: streaks fanning out of the sun across the sky. 0 is off and costs one
+     * uniform branch. They come from the sun's direction even when a cloud hides the disc, which
+     * is exactly the shot the rays are for.
+     */
+    raysIntensity: number;
+    raysColor: string;
+    /** Angular reach of the streaks, in degrees from the sun. */
+    raysLength: number;
+    /** Roughly how many streaks go round the sun. */
+    raysCount: number;
+    /** Contrast between a streak and the gap beside it. High values give a few hard shafts. */
+    raysSharpness: number;
+    /** How fast the streaks breathe. 0 freezes them. */
+    raysSpeed: number;
+    /** 0 draws rays only through gaps in the deck, 1 over the clouds as well. */
+    raysOverClouds: number;
 }
 
 export interface MoonConfig {
@@ -145,6 +162,26 @@ export interface CloudsConfig {
     variation: number;
     /** How much the sun is allowed to light the deck's near edge and shade its underside. */
     lightInfluence: number;
+    /** Silver lining strength — the sun-facing edge of the deck picks up the sun's colour. */
+    rimIntensity: number;
+    /** Exponent of the lining around the sun. Higher keeps it tight to the disc. */
+    rimTightness: number;
+    /** 0 lights the whole cloud near the sun, 1 only its thin edges. */
+    rimEdge: number;
+    /**
+     * Sunset underlighting: the deck lit from below by a sun near the horizon. Independent of the
+     * clock on purpose — a cinematic preset wants the pink deck at whatever hour it is authored.
+     */
+    glowColor: string;
+    glowIntensity: number;
+    /** 0 keeps the glow on the sun's side of the sky, 1 spreads it over the whole deck. */
+    glowSpread: number;
+    /** Stretches the deck along `direction` into streaks. 1 is round. */
+    stretch: number;
+    /** Clears the deck around the sun, a ragged hole for the light to break through. */
+    sunGap: number;
+    /** Angular radius of that hole, in degrees. */
+    sunGapRadius: number;
 }
 
 export interface LightningConfig {
@@ -360,6 +397,13 @@ function readSun(raw: Raw, issues: ConfigIssues): SunConfig {
         glowIntensity: num(raw, "glowIntensity", 0.5, p, issues, 0, 10),
         glowRadius: num(raw, "glowRadius", 16, p, issues, 0.5, 90),
         glowSoftness: num(raw, "glowSoftness", 0.7, p, issues, 0.01, 1),
+        raysIntensity: num(raw, "raysIntensity", 0, p, issues, 0, 4),
+        raysColor: colorHex(raw, "raysColor", "#ffe6bf", p, issues),
+        raysLength: num(raw, "raysLength", 50, p, issues, 2, 180),
+        raysCount: num(raw, "raysCount", 16, p, issues, 2, 80),
+        raysSharpness: num(raw, "raysSharpness", 2, p, issues, 0.5, 8),
+        raysSpeed: num(raw, "raysSpeed", 0.15, p, issues, 0, 3),
+        raysOverClouds: num(raw, "raysOverClouds", 0.5, p, issues, 0, 1),
     };
 }
 
@@ -412,6 +456,15 @@ function readClouds(raw: Raw, issues: ConfigIssues): CloudsConfig {
         windStrength: num(raw, "windStrength", 1, p, issues, 0, 5),
         variation: num(raw, "variation", 0.5, p, issues, 0, 1),
         lightInfluence: num(raw, "lightInfluence", 0.6, p, issues, 0, 2),
+        rimIntensity: num(raw, "rimIntensity", 0.35, p, issues, 0, 4),
+        rimTightness: num(raw, "rimTightness", 6, p, issues, 0.5, 64),
+        rimEdge: num(raw, "rimEdge", 0, p, issues, 0, 1),
+        glowColor: colorHex(raw, "glowColor", "#ff8a4c", p, issues),
+        glowIntensity: num(raw, "glowIntensity", 0, p, issues, 0, 3),
+        glowSpread: num(raw, "glowSpread", 0.3, p, issues, 0, 1),
+        stretch: num(raw, "stretch", 1, p, issues, 1, 12),
+        sunGap: num(raw, "sunGap", 0, p, issues, 0, 1),
+        sunGapRadius: num(raw, "sunGapRadius", 20, p, issues, 2, 90),
     };
 }
 

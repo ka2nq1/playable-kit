@@ -113,6 +113,15 @@ uniform float uSunGlow;
 uniform float uSunGlowRadius;
 uniform float uSunGlowSoftness;
 uniform float uLowSun;
+uniform vec3 uSunRight;
+uniform vec3 uSunUp;
+uniform float uRaysIntensity;
+uniform vec3 uRaysColor;
+uniform float uRaysLength;
+uniform float uRaysCount;
+uniform float uRaysSharpness;
+uniform float uRaysSpeed;
+uniform float uRaysOverClouds;
 
 uniform float uMoonEnabled;
 uniform vec3 uMoonDir;
@@ -150,6 +159,16 @@ uniform float uCloudFar;
 uniform float uCloudHorizonFade;
 uniform float uCloudWarp;
 uniform vec2 uCloudWind;
+uniform float uCloudRim;
+uniform float uCloudRimTight;
+uniform float uCloudRimEdge;
+uniform vec3 uCloudGlowColor;
+uniform float uCloudGlow;
+uniform float uCloudGlowSpread;
+uniform float uCloudStretch;
+uniform vec2 uCloudStretchAxis;
+uniform float uCloudSunGap;
+uniform float uCloudSunGapRadius;
 
 /** View-space units per pixel at unit depth — the LOD metric the cloud fbm fades octaves on. */
 uniform float uPixelAngle;
@@ -271,7 +290,43 @@ vec3 starField(vec3 d) {
 }
 #endif
 
+/**
+ * Crepuscular rays, as a pattern around the sun rather than a screen-space blur.
+ *
+ * The streaks are noise sampled on a circle in the sun's tangent plane, so they have no seam
+ * where an atan would wrap, cost two noise taps, and need neither a second pass nor the depth
+ * buffer. Past 90 degrees the same projection converges again on the anti-sun point, which is
+ * what real anticrepuscular rays do — a long reach is allowed to show it.
+ */
+float sunRays(vec3 d) {
+    float reach = 1.0 - chord(d, uSunDir) / max(uRaysLength, 1e-3);
+    if (reach <= 0.0) return 0.0;
+
+    vec3 rel = d - uSunDir * dot(d, uSunDir);
+    vec2 t = vec2(dot(rel, uSunRight), dot(rel, uSunUp));
+    float len = length(t);
+    vec2 around = t / max(len, 1e-5);
+
+    float time = uTime * uRaysSpeed;
+    float r = uRaysCount * 0.25;
+    float n = 0.65 * vnoise(around * r + vec2(time, -0.7 * time))
+            + 0.35 * vnoise(around * r * 2.3 + vec2(17.0 - 1.3 * time, 3.0 + time));
+    float streak = pow(clamp(n * 1.35 - 0.2, 0.0, 1.0), uRaysSharpness);
+    // At the centre every streak meets; without this the noise resolves into a pinwheel there.
+    streak = mix(1.0, streak, smoothstep(0.0, 0.06, len));
+
+    // Below the horizon the "sky" is the ground band — shafts painted there look like a decal.
+    float horizon = smoothstep(uHorizonHeight - 0.12, uHorizonHeight + 0.02, d.y);
+    return reach * reach * streak * horizon;
+}
+
 #if CLOUD_LAYERS > 0
+/** Along the drift axis the deck is squeezed, which turns lumps into streaks. */
+vec2 stretchDeck(vec2 v) {
+    vec2 ax = uCloudStretchAxis;
+    return vec2(dot(v, ax) / uCloudStretch, dot(v, vec2(-ax.y, ax.x)));
+}
+
 /** Returns rgb = lit cloud colour, a = coverage. */
 vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMul) {
 #ifdef SKY_DOME
@@ -299,7 +354,7 @@ vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMu
     vec2 p = origin.xz + d.xz * tc;
 
     float scale = uCloudScale * scaleMul * 0.0016;
-    vec2 q = (p + wind) * scale;
+    vec2 q = stretchDeck((p + wind) * scale);
 
     // Pixel footprint on the deck, stretched by 1/|d.y| along the ray. The octave whose cells are
     // smaller than this is the one to stop at.
@@ -315,9 +370,16 @@ vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMu
     // The coarse coverage field is what stops this reading as a scrolling tile: it drifts at a
     // different speed in a different direction, so the big shape never comes round on the same
     // period as the detail and the eye can never locate the repeat.
-    float cov = fbmLod((p + wind * 0.35) * scale * 0.13 + 5.7, max(lodLimit - 3.0, 0.0));
+    float cov = fbmLod(stretchDeck((p + wind * 0.35) * scale * 0.13) + 5.7, max(lodLimit - 3.0, 0.0));
 
     float thr = (1.0 - uCloudCoverage) + (cov - 0.5) * uCloudVariation;
+
+    // The hole around the sun. Its rim is pushed about by the coverage field so it reads as the
+    // deck parting, not as a circle cut out of it.
+    float gapR = uCloudSunGapRadius;
+    float gapD = chord(d, uSunDir) + (cov - 0.5) * gapR * 0.8;
+    thr += uCloudSunGap * (1.0 - smoothstep(gapR * 0.35, gapR, gapD));
+
     float dens = smoothstep(thr, thr + uCloudSoftness, detail);
     dens = clamp(dens * uCloudDensity, 0.0, 1.0) * cover * uCloudOpacity * opacityMul;
     if (dens <= 0.002) return vec4(0.0);
@@ -331,9 +393,29 @@ vec4 cloudLayer(vec3 d, float height, vec2 wind, float scaleMul, float opacityMu
     float shade = fbmLod(q + toSun, lodLimit);
     float selfShadow = exp(-uCloudLight * 2.2 * max(shade - detail + 0.25, 0.0));
     lit = mix(uCloudShadow, uCloudColor, selfShadow);
-    // Silver lining: the rim facing the sun picks up its colour.
-    lit += uSunColor * uCloudLight * 0.35 * pow(max(dot(d, uSunDir), 0.0), 6.0) * (1.0 - uNight);
 #endif
+
+    // Thin parts of the deck: where detail has only just crossed the threshold.
+    float edge = 1.0 - smoothstep(thr, thr + uCloudSoftness * 3.0, detail);
+#if CLOUD_LIGHTING
+    // Silver lining: the rim facing the sun picks up its colour. rimEdge moves it off the body of
+    // the cloud and onto its thin edges, which is the backlit look.
+    float rim = uCloudRim * pow(max(dot(d, uSunDir), 0.0), uCloudRimTight);
+    lit += uSunColor * uCloudLight * rim * (1.0 + uCloudRimEdge * (3.0 * edge - 1.0)) * (1.0 - uNight);
+#endif
+
+    // Sunset underlighting. Strongest on the sun's side and low in the sky; thin parts take more
+    // of it than the cores, which keep some of their shadow colour — that contrast is the look.
+    if (uCloudGlow > 0.001) {
+        vec2 fd = normalize(d.xz + vec2(1e-5, 0.0));
+        vec2 fs = normalize(uSunDir.xz + vec2(1e-4, 0.0));
+        float az = dot(fd, fs) * 0.5 + 0.5;
+        float side = mix(pow(az, 6.0), 1.0, uCloudGlowSpread);
+        float low = 1.0 - 0.55 * smoothstep(0.0, 0.8, d.y);
+        float g = uCloudGlow * side * low;
+        lit = mix(lit, uCloudGlowColor, clamp(g, 0.0, 1.0) * (0.45 + 0.55 * edge));
+        lit += uCloudGlowColor * g * edge * 0.5;
+    }
 
     return vec4(lit, dens);
 }
@@ -443,6 +525,7 @@ void main() {
     }
 
     // ---- Clouds, over everything above ---------------------------------------------------------
+    float cloudA = 0.0;
 #if CLOUD_LAYERS > 0
     for (int i = 0; i < CLOUD_LAYERS; i++) {
         float fi = float(i);
@@ -455,8 +538,15 @@ void main() {
             1.0 / (1.0 + fi * 0.55)
         );
         col = mix(col, layer.rgb, layer.a);
+        cloudA += layer.a * (1.0 - cloudA);
     }
 #endif
+
+    // ---- Sun rays, after the clouds so they can pour through the gaps ---------------------------
+    if (uRaysIntensity > 0.001 && uSunEnabled > 0.5) {
+        float through = mix(1.0 - cloudA, 1.0, uRaysOverClouds);
+        col += uRaysColor * uRaysIntensity * sunRays(d) * through * (1.0 - uNight);
+    }
 
     // ---- Weather and grade ----------------------------------------------------------------------
     col = mix(col, uTint, uTintStrength);
@@ -517,6 +607,8 @@ export class SkyDome {
     // Per-frame scratch. Nothing in `apply` or `onBeforeRender` may allocate.
     private readonly moonRight = new Vector3();
     private readonly moonUp = new Vector3();
+    private readonly sunRight = new Vector3();
+    private readonly sunUp = new Vector3();
     private readonly wind = new Vector2();
     private readonly worldUp = new Vector3(0, 1, 0);
     private readonly fallbackAxis = new Vector3(1, 0, 0);
@@ -621,6 +713,15 @@ export class SkyDome {
                 uSunGlowRadius: { value: 0.3 },
                 uSunGlowSoftness: { value: 0.7 },
                 uLowSun: { value: 0 },
+                uSunRight: { value: new Vector3(1, 0, 0) },
+                uSunUp: { value: new Vector3(0, 0, 1) },
+                uRaysIntensity: { value: 0 },
+                uRaysColor: { value: new Color() },
+                uRaysLength: { value: 0.8 },
+                uRaysCount: { value: 16 },
+                uRaysSharpness: { value: 2 },
+                uRaysSpeed: { value: 0.15 },
+                uRaysOverClouds: { value: 0.5 },
 
                 uMoonEnabled: { value: 0 },
                 uMoonDir: { value: new Vector3(0, 1, 0) },
@@ -658,6 +759,16 @@ export class SkyDome {
                 uCloudHorizonFade: { value: 0.06 },
                 uCloudWarp: { value: 0.6 },
                 uCloudWind: { value: new Vector2() },
+                uCloudRim: { value: 0.35 },
+                uCloudRimTight: { value: 6 },
+                uCloudRimEdge: { value: 0 },
+                uCloudGlowColor: { value: new Color() },
+                uCloudGlow: { value: 0 },
+                uCloudGlowSpread: { value: 0.3 },
+                uCloudStretch: { value: 1 },
+                uCloudStretchAxis: { value: new Vector2(1, 0) },
+                uCloudSunGap: { value: 0 },
+                uCloudSunGapRadius: { value: 0.35 },
 
                 uPixelAngle: { value: 0.0012 },
                 uDomeCenter: { value: new Vector3() },
@@ -760,15 +871,21 @@ export class SkyDome {
         u.uSunGlowRadius.value = angleToChord(c.sun.glowRadius);
         u.uSunGlowSoftness.value = c.sun.glowSoftness;
         u.uLowSun.value = src.lowSun;
+        this.tangentBasis(src.sunDir, this.sunRight, this.sunUp);
+        (u.uSunRight.value as Vector3).copy(this.sunRight);
+        (u.uSunUp.value as Vector3).copy(this.sunUp);
+        u.uRaysIntensity.value = c.sun.raysIntensity;
+        (u.uRaysColor.value as Color).copy(resolveColor(c.sun.raysColor));
+        u.uRaysLength.value = angleToChord(c.sun.raysLength);
+        u.uRaysCount.value = c.sun.raysCount;
+        u.uRaysSharpness.value = c.sun.raysSharpness;
+        u.uRaysSpeed.value = c.sun.raysSpeed;
+        u.uRaysOverClouds.value = c.sun.raysOverClouds;
 
         // ---- Moon ----
         u.uMoonEnabled.value = c.moon.enabled ? 1 : 0;
         (u.uMoonDir.value as Vector3).copy(src.moonDir);
-        // A stable tangent basis for the disc. Near the pole the up vector degenerates, so fall
-        // back to an axis that cannot be parallel to it.
-        const ref = Math.abs(src.moonDir.y) > 0.999 ? this.fallbackAxis : this.worldUp;
-        this.moonRight.crossVectors(ref, src.moonDir).normalize();
-        this.moonUp.crossVectors(src.moonDir, this.moonRight).normalize();
+        this.tangentBasis(src.moonDir, this.moonRight, this.moonUp);
         (u.uMoonRight.value as Vector3).copy(this.moonRight);
         (u.uMoonUp.value as Vector3).copy(this.moonUp);
         (u.uMoonColor.value as Color).copy(resolveColor(c.moon.color));
@@ -803,11 +920,33 @@ export class SkyDome {
         u.uCloudVariation.value = c.clouds.variation;
         u.uCloudLight.value = c.clouds.lightInfluence;
         u.uCloudWarp.value = shape.warp;
+        u.uCloudRim.value = c.clouds.rimIntensity;
+        u.uCloudRimTight.value = c.clouds.rimTightness;
+        u.uCloudRimEdge.value = c.clouds.rimEdge;
+        (u.uCloudGlowColor.value as Color).copy(resolveColor(c.clouds.glowColor));
+        u.uCloudGlow.value = c.clouds.glowIntensity;
+        u.uCloudGlowSpread.value = c.clouds.glowSpread;
+        u.uCloudStretch.value = c.clouds.stretch;
+        // The same axis `advanceWind` drifts along, so a stretched deck streams lengthwise.
+        const rad = (c.clouds.direction * Math.PI) / 180;
+        (u.uCloudStretchAxis.value as Vector2).set(Math.cos(rad), Math.sin(rad));
+        u.uCloudSunGap.value = c.clouds.sunGap;
+        u.uCloudSunGapRadius.value = angleToChord(c.clouds.sunGapRadius);
 
         // Wind is a distance, accumulated on the CPU from dt — see SkyVfx. Keeping it here as a
         // position rather than `speed * uTime` is what makes it frame-rate independent and lets
         // the direction change without the deck jumping.
         (u.uCloudWind.value as Vector2).copy(this.wind);
+    }
+
+    /**
+     * A stable tangent basis around a direction. Near the pole the up vector degenerates, so fall
+     * back to an axis that cannot be parallel to it.
+     */
+    private tangentBasis(dir: Vector3, right: Vector3, up: Vector3): void {
+        const ref = Math.abs(dir.y) > 0.999 ? this.fallbackAxis : this.worldUp;
+        right.crossVectors(ref, dir).normalize();
+        up.crossVectors(dir, right).normalize();
     }
 
     /** Advances the cloud drift. Called once per frame with the already-scaled delta. */

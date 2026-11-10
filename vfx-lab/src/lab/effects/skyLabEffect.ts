@@ -341,6 +341,17 @@ export function createSkyLabEffect(ctx: LabEffectContext): LabEffectHandle {
             bodies.slider("Surface detail", { min: 0, max: 1, step: 0.01 }, () => moon.surfaceDetail, (v) => (moon.surfaceDetail = v));
             bodies.note("Phase 0 is new, 0.5 full. It is independent of where the moon sits.");
 
+            // ---- Sun rays ------------------------------------------------------------------------
+            const rays = panel.folder("Sun rays", false);
+            rays.slider("Intensity", { min: 0, max: 4, step: 0.01 }, () => sun.raysIntensity, (v) => (sun.raysIntensity = v));
+            rays.color("Colour", () => sun.raysColor, (v) => (sun.raysColor = v));
+            rays.slider("Length °", { min: 2, max: 180, step: 1 }, () => sun.raysLength, (v) => (sun.raysLength = v));
+            rays.slider("Count", { min: 2, max: 80, step: 1 }, () => sun.raysCount, (v) => (sun.raysCount = v));
+            rays.slider("Sharpness", { min: 0.5, max: 8, step: 0.05 }, () => sun.raysSharpness, (v) => (sun.raysSharpness = v));
+            rays.slider("Speed", { min: 0, max: 3, step: 0.01 }, () => sun.raysSpeed, (v) => (sun.raysSpeed = v));
+            rays.slider("Over clouds", { min: 0, max: 1, step: 0.01 }, () => sun.raysOverClouds, (v) => (sun.raysOverClouds = v));
+            rays.note("Shafts fan out of the sun even when a cloud hides the disc. Over clouds 0 shows them only through gaps in the deck — pair it with Clouds ▸ Sun gap.");
+
             // ---- Stars -------------------------------------------------------------------------
             const st = cfg.stars;
             const stars = panel.folder("Stars", false);
@@ -373,6 +384,15 @@ export function createSkyLabEffect(ctx: LabEffectContext): LabEffectHandle {
             clouds.slider("Speed", { min: 0, max: 10, step: 0.05 }, () => cl.speed, (v) => (cl.speed = v));
             clouds.slider("Direction °", { min: 0, max: 360, step: 1 }, () => cl.direction, (v) => (cl.direction = v));
             clouds.slider("Wind", { min: 0, max: 5, step: 0.05 }, () => cl.windStrength, (v) => (cl.windStrength = v));
+            clouds.slider("Stretch", { min: 1, max: 12, step: 0.05 }, () => cl.stretch, (v) => (cl.stretch = v));
+            clouds.slider("Silver lining", { min: 0, max: 4, step: 0.01 }, () => cl.rimIntensity, (v) => (cl.rimIntensity = v));
+            clouds.slider("Lining tightness", { min: 0.5, max: 64, step: 0.5 }, () => cl.rimTightness, (v) => (cl.rimTightness = v));
+            clouds.slider("Lining on edges", { min: 0, max: 1, step: 0.01 }, () => cl.rimEdge, (v) => (cl.rimEdge = v));
+            clouds.color("Sunset glow", () => cl.glowColor, (v) => (cl.glowColor = v));
+            clouds.slider("Glow amount", { min: 0, max: 3, step: 0.01 }, () => cl.glowIntensity, (v) => (cl.glowIntensity = v));
+            clouds.slider("Glow spread", { min: 0, max: 1, step: 0.01 }, () => cl.glowSpread, (v) => (cl.glowSpread = v));
+            clouds.slider("Sun gap", { min: 0, max: 1, step: 0.01 }, () => cl.sunGap, (v) => (cl.sunGap = v));
+            clouds.slider("Sun gap radius °", { min: 2, max: 90, step: 0.5 }, () => cl.sunGapRadius, (v) => (cl.sunGapRadius = v));
             clouds.readout("Layers drawn", () => `${qualityLayers(cfg.quality, cl.enabled)}`);
             clouds.note("Type is a set of multipliers over everything above, not a different renderer. Layer count comes from the quality mode.");
 
